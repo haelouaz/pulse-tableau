@@ -369,7 +369,7 @@ table.t .r{text-align:right}
 </div>
 
 
-<script src="https://tableau.github.io/extensions-api/lib/tableau.extensions.1.latest.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/tableau/extensions-api@1.17.0/lib/tableau.extensions.1.latest.min.js"></script>
 <script>
 (function(){
 "use strict";
@@ -1061,10 +1061,12 @@ async function embedSource(){
     return Object.entries(all).map(([n,l])=>({name:n,currentValue:l[0].currentValue,allowableValues:l[0].allowableValues,changeValueAsync:v=>Promise.all(l.map(p=>p.changeValueAsync(v)))}));};
   return {worksheets:Object.keys(sheetViz).map(wrap),getParametersAsync:params,findParameterAsync:async n=>(await params()).find(p=>p.name===n)};}
 async function connectTableau(){
-  if(!(window.tableau&&tableau.extensions)||window.self===window.top)return;
+  if(window.self===window.top)return;
+  if(!(window.tableau&&tableau.extensions)){setMode('err','API Extensions Tableau non chargée');return;}
   const TX=tableau.extensions;
   try{
-    await TX.initializeAsync();
+    setMode('err','Initialisation de l’extension…');
+    await Promise.race([TX.initializeAsync(),new Promise((_,ko)=>setTimeout(()=>ko({user:'Extension non initialisée par Tableau (URL autorisée ?)'}),30000))]);
     // si les feuilles sont posées dans le dashboard Pulse, on les lit directement ; sinon on ouvre le régalien en arrière-plan
     const d=TX.dashboardContent.dashboard,names=new Set(d.worksheets.map(w=>w.name.trim()));
     if(ALL_SHEETS.every(n=>names.has(n.trim())))SRC=d;
