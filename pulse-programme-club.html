@@ -1041,25 +1041,41 @@ async function readTableau(){
 const TB_HOST='https://dub01.online.tableau.com',TB_WB='/t/france/views/ProgrammeClub_17682333228960/';
 const TB_PAGES={groupe:'EncartageGroupe',format:'EncartageFormat',eqc:'EQC',segment:'FocussegmentEQC',solde:'Soldedactifs',recrutement:'Recrutement',valeur:'ValeurClients',omni:'Omnicanalit'};
 let SRC=null;
-function vizBox(){let b=document.getElementById('tbsrc');if(!b){b=document.createElement('div');b.id='tbsrc';b.setAttribute('aria-hidden','true');
-  b.style.cssText='position:fixed;left:-12000px;top:0;width:1300px;height:900px;overflow:hidden;opacity:0;pointer-events:none';document.body.appendChild(b);}return b;}
-function showLogin(){const b=vizBox();b.style.cssText='position:fixed;inset:5% 10%;z-index:200;background:#fff;border:1px solid #ccc;border-radius:12px;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)';
-  b.insertAdjacentHTML('afterbegin','<p style="font:600 14px Manrope,sans-serif;margin:12px 16px">Connecte-toi à Tableau Cloud dans ce cadre, puis recharge le dashboard Pulse.</p>');}
+function vizBox(){let b=document.getElementById('tbsrc');if(!b){b=document.createElement('div');b.id='tbsrc';b.setAttribute('aria-hidden','true');document.body.appendChild(b);}
+  b.style.cssText='position:fixed;left:-12000px;top:0;width:1300px;height:900px;overflow:hidden;opacity:0;pointer-events:none';return b;}
+function loginPanel(on){let p=document.getElementById('tblogin');
+  if(!on){if(p)p.remove();vizBox();return;}
+  if(!p){p=document.createElement('div');p.id='tblogin';p.style.cssText='position:fixed;inset:0;z-index:300;background:rgba(14,23,38,.55);display:flex;align-items:center;justify-content:center;padding:16px';
+    p.innerHTML='<div style="background:#fff;border-radius:16px;max-width:560px;width:100%;padding:22px 24px;font-family:Manrope,system-ui,sans-serif;box-shadow:0 24px 60px rgba(0,0,0,.3)"><div style="font-size:12px;font-weight:700;letter-spacing:.08em;color:#2346d8;text-transform:uppercase">Pulse · Programme Club</div><h2 style="margin:6px 0 8px;font-size:20px;color:#0e1726">Connexion à Tableau Cloud</h2><p style="margin:0 0 14px;color:#4a5568;font-size:14px;line-height:1.5">Pour lire les vrais chiffres du dashboard Programme Club, clique une fois sur <b>« Connexion à Tableau Cloud »</b> ci-dessous. La fenêtre qui s’ouvre se referme seule, puis Pulse charge les données.</p><div id="tbloginslot" style="height:150px;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;position:relative"></div></div>';
+    document.body.appendChild(p);}
+  const b=vizBox();b.style.cssText='position:fixed;z-index:301;overflow:hidden;opacity:1;pointer-events:auto;background:#fff;border-radius:10px';
+  const r=document.getElementById('tbloginslot').getBoundingClientRect();Object.assign(b.style,{left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px'});}
+function addViz(k,timeoutMs){return new Promise((ok,ko)=>{const v=document.createElement('tableau-viz');
+  v.setAttribute('src',TB_HOST+TB_WB+TB_PAGES[k]);v.setAttribute('toolbar','hidden');v.setAttribute('hide-tabs','');v.setAttribute('width','1280');v.setAttribute('height','880');
+  const t=timeoutMs?setTimeout(()=>ko({timeout:true,v}),timeoutMs):null;
+  v.addEventListener('firstinteractive',()=>{if(t)clearTimeout(t);ok(v);});
+  v.addEventListener('vizloaderror',e=>{if(t)clearTimeout(t);ko({user:'Programme Club inaccessible : vérifie tes droits sur le classeur',e});});
+  vizBox().appendChild(v);});}
 async function embedSource(){
   await import(TB_HOST+'/javascripts/api/tableau.embedding.3.latest.min.js');
-  const box=vizBox(),V={};
-  await Promise.all(Object.entries(TB_PAGES).map(([k,p])=>new Promise((ok,ko)=>{const v=document.createElement('tableau-viz');
-    v.setAttribute('src',TB_HOST+TB_WB+p);v.setAttribute('toolbar','hidden');v.setAttribute('hide-tabs','');v.setAttribute('width','1280');v.setAttribute('height','880');
-    const t=setTimeout(()=>ko({user:'Connexion au dashboard Programme Club impossible (session ou droits Tableau)',login:true}),120000);
-    v.addEventListener('firstinteractive',()=>{clearTimeout(t);V[k]=v;ok();});v.addEventListener('vizloaderror',e=>{clearTimeout(t);ko({user:'Programme Club inaccessible : vérifie tes droits sur le classeur',login:true,e});});
-    box.appendChild(v);})));
-  const sheetViz={};Object.entries(NEED).forEach(([k,list])=>list.forEach(n=>{if(!sheetViz[n.trim()])sheetViz[n.trim()]=k;}));
-  const getWS=n=>{const v=V[sheetViz[n]];return v&&v.workbook.activeSheet.worksheets.find(w=>w.name.trim()===n);};
-  const wrap=n=>({name:n,getSummaryDataReaderAsync:(...a)=>getWS(n).getSummaryDataReaderAsync(...a),getFiltersAsync:()=>getWS(n).getFiltersAsync(),applyFilterAsync:(...a)=>getWS(n).applyFilterAsync(...a)});
+  const V={},keys=Object.keys(TB_PAGES),first=keys[0];
+  // 1) première page : si Tableau demande une connexion, on affiche son bouton à l'utilisateur
+  let p=addViz(first,0),done=false;p.then(()=>{done=true;});
+  await Promise.race([p,new Promise(r=>setTimeout(r,15000))]);
+  if(!done){loginPanel(true);setMode('err','Connexion à Tableau Cloud requise');}
+  V[first]=await Promise.race([p,new Promise((_,ko)=>setTimeout(()=>ko({user:'Connexion à Tableau Cloud non effectuée'}),300000))]);
+  loginPanel(false);
+  // 2) les 7 autres pages, en arrière-plan
+  let n=1;setMode('err',`Chargement du dashboard Programme Club ${n}/${keys.length}…`);
+  await Promise.all(keys.slice(1).map(k=>addViz(k,180000).then(v=>{V[k]=v;n++;setMode('err',`Chargement du dashboard Programme Club ${n}/${keys.length}…`);})
+    .catch(e=>{throw e&&e.timeout?{user:'Une page du dashboard Programme Club ne répond pas'}:e;})));
+  const sheetViz={};Object.entries(NEED).forEach(([k,list])=>list.forEach(nm=>{if(!sheetViz[nm.trim()])sheetViz[nm.trim()]=k;}));
+  const getWS=nm=>{const v=V[sheetViz[nm]];const w=v&&v.workbook.activeSheet.worksheets.find(w=>w.name.trim()===nm);if(!w)throw {user:'Feuille introuvable dans Programme Club : '+nm};return w;};
+  const wrap=nm=>({name:nm,getSummaryDataReaderAsync:(...a)=>getWS(nm).getSummaryDataReaderAsync(...a),getFiltersAsync:()=>getWS(nm).getFiltersAsync(),applyFilterAsync:(...a)=>getWS(nm).applyFilterAsync(...a)});
   // un paramètre = le même dans les 8 sessions : on le change partout
-  const params=async()=>{const all={};for(const v of Object.values(V)){(await v.workbook.getParametersAsync()).forEach(p=>{const n=p.name.trim();(all[n]=all[n]||[]).push(p);});}
-    return Object.entries(all).map(([n,l])=>({name:n,currentValue:l[0].currentValue,allowableValues:l[0].allowableValues,changeValueAsync:v=>Promise.all(l.map(p=>p.changeValueAsync(v)))}));};
-  return {worksheets:Object.keys(sheetViz).map(wrap),getParametersAsync:params,findParameterAsync:async n=>(await params()).find(p=>p.name===n)};}
+  const params=async()=>{const all={};for(const v of Object.values(V)){(await v.workbook.getParametersAsync()).forEach(q=>{const nm=q.name.trim();(all[nm]=all[nm]||[]).push(q);});}
+    return Object.entries(all).map(([nm,l])=>({name:nm,currentValue:l[0].currentValue,allowableValues:l[0].allowableValues,changeValueAsync:v=>Promise.all(l.map(q=>q.changeValueAsync(v)))}));};
+  return {worksheets:Object.keys(sheetViz).map(wrap),getParametersAsync:params,findParameterAsync:async nm=>(await params()).find(q=>q.name===nm)};}
 async function connectTableau(){
   if(window.self===window.top)return;
   if(!(window.tableau&&tableau.extensions)){setMode('err','API Extensions Tableau non chargée');return;}
@@ -1074,7 +1090,7 @@ async function connectTableau(){
     setMode('err','Lecture des données Tableau…');
     await loadParams();initFiltFromTableau();renderGbar();
     await refreshTableau();
-  }catch(e){setMode('err',(e&&e.user)||'Lecture Tableau impossible · données fictives');console.warn('[Pulse]',e);if(e&&e.login)showLogin();}
+  }catch(e){setMode('err',(e&&e.user)||'Lecture Tableau impossible · données fictives');console.warn('[Pulse]',e);loginPanel(false);}
 }
 connectTableau();
 
