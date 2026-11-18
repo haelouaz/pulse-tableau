@@ -886,7 +886,7 @@ function renderGbar(){const el=$('#gbar');if(!el)return;const live=MODE==='real'
 /* --- pilotage des paramètres et filtres Tableau --- */
 let PAR=null;const DONE={};
 const avs=p=>((p&&p.allowableValues&&p.allowableValues.allowableValues)||[]);
-async function loadParams(){const ps=await tableau.extensions.dashboardContent.dashboard.getParametersAsync();PAR={};ps.forEach(p=>{PAR[p.name.trim()]=p;DONE[p.name.trim()]=String(p.currentValue&&p.currentValue.value);});}
+async function loadParams(){const ps=await SRC.getParametersAsync();PAR={};ps.forEach(p=>{PAR[p.name.trim()]=p;DONE[p.name.trim()]=String(p.currentValue&&p.currentValue.value);});}
 async function setPv(name,hit){const p=PAR[name];if(!p||!hit)return;if(DONE[name]===String(hit.value))return;
   try{await p.changeValueAsync(hit.value);}catch(e){try{await p.changeValueAsync(hit.formattedValue);}catch(e2){console.warn('[Pulse] paramètre',name,e2);return;}}DONE[name]=String(hit.value);}
 const setP=(name,pred)=>setPv(name,avs(PAR[name]).find(x=>pred(nrm(x.formattedValue??x.value))));
@@ -921,7 +921,7 @@ async function applyFilt(){const F=FILT,ti=['Hebdo','Mensuel','CAD','CAM'].index
   await setPi('DT/DR/Enseigne',CTRL.find(c=>c.k==='axe').o.indexOf(F.axe));
   await setP('P segmentation',v=>v===nrm(F.segm));await setP('Période balance',v=>v===nrm(F.bal));
   await setP('Cora',v=>F.nc==='Exclu'?/exclu/.test(v):/inclu/.test(v));
-  const byName={};tableau.extensions.dashboardContent.dashboard.worksheets.forEach(w=>{byName[w.name.trim()]=w;});
+  const byName={};SRC.worksheets.forEach(w=>{byName[w.name.trim()]=w;});
   const ncP={Exclu:v=>/exclu/.test(v),Inclus:v=>/inclu/.test(v),'New Carrefour':v=>/new/.test(v)}[F.nc],stP=v=>v===nrm(F.stat);
   for(const n of ALL_SHEETS){const ws=byName[n];if(!ws)continue;await setFilter(ws,/flag.?cora/i,ncP);await setFilter(ws,/statut_desc/i,stP);}
   for(const n of ['EQC E','EQC Débit E','Waterfall EQC'])if(byName[n])await setFilter(byName[n],/^flag clients$/i,v=>v===nrm(pass?'PASS':'Encarté'));}
@@ -959,7 +959,7 @@ async function readWS(ws){
   return {cols,rows,get,num};
 }
 async function readTableau(){
-  const dash=tableau.extensions.dashboardContent.dashboard;
+  const dash=SRC;
   const byName={};dash.worksheets.forEach(w=>{byName[w.name.trim()]=w;});
   const missing=ALL_SHEETS.filter(n=>!byName[n.trim()]);
   if(missing.length)throw {user:`Feuilles manquantes dans le dashboard : ${missing.slice(0,4).join(', ')}${missing.length>4?` (+${missing.length-4})`:''}`};
@@ -1034,14 +1034,45 @@ async function readTableau(){
    const Mt=S['Matrice de passage'];Mt.rows.forEach(r=>{const f=String(Mt.get(r,'flag mixite n1')||''),t=String(Mt.get(r,'flag_mixite_n2')||''),v=Mt.num(r,'pct_transition');if(f&&t&&v!=null)a('matrice',f+'>'+t,'part',v);});}
   return R;
 }
+/* ===================== SOURCE DES DONNÉES =====================
+   Le dashboard Pulse ne contient QUE l'extension. Pulse ouvre en arrière-plan (invisible, lecture seule)
+   les 8 pages du classeur régalien Programme Club avec la session Tableau de l'utilisateur, et lit leurs feuilles.
+   Rien n'est enregistré dans le classeur régalien ; les droits et la RLS de l'utilisateur s'appliquent. */
+const TB_HOST='https://dub01.online.tableau.com',TB_WB='/t/france/views/ProgrammeClub_17682333228960/';
+const TB_PAGES={groupe:'EncartageGroupe',format:'EncartageFormat',eqc:'EQC',segment:'FocussegmentEQC',solde:'Soldedactifs',recrutement:'Recrutement',valeur:'ValeurClients',omni:'Omnicanalit'};
+let SRC=null;
+function vizBox(){let b=document.getElementById('tbsrc');if(!b){b=document.createElement('div');b.id='tbsrc';b.setAttribute('aria-hidden','true');
+  b.style.cssText='position:fixed;left:-12000px;top:0;width:1300px;height:900px;overflow:hidden;opacity:0;pointer-events:none';document.body.appendChild(b);}return b;}
+function showLogin(){const b=vizBox();b.style.cssText='position:fixed;inset:5% 10%;z-index:200;background:#fff;border:1px solid #ccc;border-radius:12px;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)';
+  b.insertAdjacentHTML('afterbegin','<p style="font:600 14px Manrope,sans-serif;margin:12px 16px">Connecte-toi à Tableau Cloud dans ce cadre, puis recharge le dashboard Pulse.</p>');}
+async function embedSource(){
+  await import(TB_HOST+'/javascripts/api/tableau.embedding.3.latest.min.js');
+  const box=vizBox(),V={};
+  await Promise.all(Object.entries(TB_PAGES).map(([k,p])=>new Promise((ok,ko)=>{const v=document.createElement('tableau-viz');
+    v.setAttribute('src',TB_HOST+TB_WB+p);v.setAttribute('toolbar','hidden');v.setAttribute('hide-tabs','');v.setAttribute('width','1280');v.setAttribute('height','880');
+    const t=setTimeout(()=>ko({user:'Connexion au dashboard Programme Club impossible (session ou droits Tableau)',login:true}),120000);
+    v.addEventListener('firstinteractive',()=>{clearTimeout(t);V[k]=v;ok();});v.addEventListener('vizloaderror',e=>{clearTimeout(t);ko({user:'Programme Club inaccessible : vérifie tes droits sur le classeur',login:true,e});});
+    box.appendChild(v);})));
+  const sheetViz={};Object.entries(NEED).forEach(([k,list])=>list.forEach(n=>{if(!sheetViz[n.trim()])sheetViz[n.trim()]=k;}));
+  const getWS=n=>{const v=V[sheetViz[n]];return v&&v.workbook.activeSheet.worksheets.find(w=>w.name.trim()===n);};
+  const wrap=n=>({name:n,getSummaryDataReaderAsync:(...a)=>getWS(n).getSummaryDataReaderAsync(...a),getFiltersAsync:()=>getWS(n).getFiltersAsync(),applyFilterAsync:(...a)=>getWS(n).applyFilterAsync(...a)});
+  // un paramètre = le même dans les 8 sessions : on le change partout
+  const params=async()=>{const all={};for(const v of Object.values(V)){(await v.workbook.getParametersAsync()).forEach(p=>{const n=p.name.trim();(all[n]=all[n]||[]).push(p);});}
+    return Object.entries(all).map(([n,l])=>({name:n,currentValue:l[0].currentValue,allowableValues:l[0].allowableValues,changeValueAsync:v=>Promise.all(l.map(p=>p.changeValueAsync(v)))}));};
+  return {worksheets:Object.keys(sheetViz).map(wrap),getParametersAsync:params,findParameterAsync:async n=>(await params()).find(p=>p.name===n)};}
 async function connectTableau(){
   if(!(window.tableau&&tableau.extensions)||window.self===window.top)return;
+  const TX=tableau.extensions;
   try{
-    await tableau.extensions.initializeAsync();
+    await TX.initializeAsync();
+    // si les feuilles sont posées dans le dashboard Pulse, on les lit directement ; sinon on ouvre le régalien en arrière-plan
+    const d=TX.dashboardContent.dashboard,names=new Set(d.worksheets.map(w=>w.name.trim()));
+    if(ALL_SHEETS.every(n=>names.has(n.trim())))SRC=d;
+    else{setMode('err','Connexion au dashboard Programme Club…');SRC=await embedSource();}
     setMode('err','Lecture des données Tableau…');
     await loadParams();initFiltFromTableau();renderGbar();
     await refreshTableau();
-  }catch(e){setMode('err',(e&&e.user)||'Lecture Tableau impossible · données fictives');console.warn('[Pulse]',e);}
+  }catch(e){setMode('err',(e&&e.user)||'Lecture Tableau impossible · données fictives');console.warn('[Pulse]',e);if(e&&e.login)showLogin();}
 }
 connectTableau();
 
