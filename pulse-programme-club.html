@@ -12,7 +12,7 @@
 :root{
   --bg:#F5F6F8; --surface:#FFFFFF; --surface-2:#F3F4F7; --ink:#0E1726; --ink-2:#3A4556; --muted:#5B6474; --line:#E4E7EC;
   --accent:#2348C9; --accent-ink:#FFFFFF; --accent-soft:#EAF0FF; --accent-deep:#1A3699;
-  --brief:linear-gradient(135deg,#1D3BA8 0%,#2348C9 55%,#3B5FE0 100%); --brief-ink:#FFFFFF; --brief-muted:#CBD7FF; --brief-tile:rgba(255,255,255,.13);
+  --brief:var(--accent-soft); --brief-ink:var(--ink); --brief-muted:var(--accent); --brief-tile:var(--surface);
   --alert:#B4530A; --alert-soft:#FFF1E6; --vig:#A16207; --vig-soft:#FEF6DD; --ok:#0F766E; --ok-soft:#E3F5F1; --opp:#2348C9; --opp-soft:#EAF0FF;
   --neg:#E0915A; --pos:#2348C9; --ia:#6D28D9; --ia-soft:#F1EBFE;
   --shadow:0 1px 2px rgba(14,23,38,.05),0 8px 24px rgba(14,23,38,.06);
@@ -21,14 +21,14 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0B0F19; --surface:#131A28; --surface-2:#1A2233; --ink:#E7ECF5; --ink-2:#C3CBD9; --muted:#97A2B6; --line:#263044;
   --accent:#86A2FF; --accent-ink:#0B0F19; --accent-soft:#1B2650; --accent-deep:#A9BDFF;
-  --brief:linear-gradient(135deg,#17255E 0%,#1E3282 60%,#27409E 100%); --brief-ink:#F2F5FA; --brief-muted:#B9C7F2; --brief-tile:rgba(255,255,255,.10);
+  --brief:var(--accent-soft); --brief-ink:var(--ink); --brief-muted:var(--accent-deep); --brief-tile:var(--surface);
   --alert:#F5A469; --alert-soft:#3A2416; --vig:#F2C453; --vig-soft:#352B12; --ok:#5ED3C0; --ok-soft:#12302C; --opp:#86A2FF; --opp-soft:#1B2650;
   --neg:#E59A66; --pos:#86A2FF; --ia:#B794FF; --ia-soft:#2A1F45;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.3); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0B0F19; --surface:#131A28; --surface-2:#1A2233; --ink:#E7ECF5; --ink-2:#C3CBD9; --muted:#97A2B6; --line:#263044;
   --accent:#86A2FF; --accent-ink:#0B0F19; --accent-soft:#1B2650; --accent-deep:#A9BDFF;
-  --brief:linear-gradient(135deg,#17255E 0%,#1E3282 60%,#27409E 100%); --brief-ink:#F2F5FA; --brief-muted:#B9C7F2; --brief-tile:rgba(255,255,255,.10);
+  --brief:var(--accent-soft); --brief-ink:var(--ink); --brief-muted:var(--accent-deep); --brief-tile:var(--surface);
   --alert:#F5A469; --alert-soft:#3A2416; --vig:#F2C453; --vig-soft:#352B12; --ok:#5ED3C0; --ok-soft:#12302C; --opp:#86A2FF; --opp-soft:#1B2650;
   --neg:#E59A66; --pos:#86A2FF; --ia:#B794FF; --ia-soft:#2A1F45;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.3); color-scheme:dark}
@@ -95,12 +95,12 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .pt .k{width:28px;height:28px;border-radius:8px;background:var(--brief-tile);display:grid;place-items:center;font-size:13px;font-weight:700}
 .pt b{font-weight:700}
 .minis{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
-.mini{background:var(--brief-tile);border:1px solid rgba(255,255,255,.16);border-radius:10px;padding:9px 13px;min-width:132px;text-align:left;color:inherit}
-.mini:hover{border-color:rgba(255,255,255,.55)}
+.mini{background:var(--brief-tile);border:1px solid var(--line);border-radius:10px;padding:9px 13px;min-width:132px;text-align:left;color:inherit}
+.mini:hover{border-color:var(--accent)}
 .mini .l{font-size:11.5px;color:var(--brief-muted)}
 .mini .v{font-size:16px;font-weight:700}
 .mini .v small{font-size:12px;font-weight:700;margin-left:4px}
-.mini .v small.n{color:#FFC59A} .mini .v small.p{color:#D9E4FF}
+.mini .v small.n{color:var(--neg)} .mini .v small.p{color:var(--accent)}
 .briefcard .foot{font-size:12px;color:var(--brief-muted);margin-top:14px}
 .domains{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;margin-top:16px}
 .dom{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;text-align:left;min-width:0}
@@ -296,7 +296,9 @@ table.t .r{text-align:right}
 .filt select:disabled{opacity:.65;cursor:not-allowed}
 
 /* Pilotage (brief enrichi + analyse) */
-.briefcard{box-shadow:0 10px 30px -14px rgba(35,72,201,.55)}
+.briefcard{border:1px solid color-mix(in srgb,var(--accent) 18%,transparent)}
+.briefcard .pt .k{color:var(--accent)}
+.briefcard .mini .l{color:var(--muted)}
 .ptl{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--brief-muted);margin-right:8px}
 .axes.pil{grid-template-columns:repeat(5,minmax(0,1fr))}
 .axes.pil .dom{display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch}
@@ -344,7 +346,6 @@ table.t .r{text-align:right}
   <div class="brand"><b>Pulse</b><span>Plateforme Data Products &amp; IA</span></div>
   <div class="tb-right">
     <span class="chip src" id="srcChip"><svg class="ico" style="width:15px;height:15px"><use href="#i-db"/></svg> Tableau Cloud · dashboard régalien Programme Club</span>
-    <span class="chip prof">Profil <b>Siège · Resp. fidélité</b></span>
     <span class="chip demo" id="modeChip">Connexion à Tableau Cloud…</span>
     <button type="button" class="bell" aria-label="Notifications"><svg class="ico"><use href="#i-bell"/></svg></button>
   </div>
@@ -753,7 +754,7 @@ function renderBrief(){const {k}=M,P=A.P,s0=A.signals[0],m=P.mom;
   const p3=P.gapCAeur!=null?(P.gapCAeur>0?`Atteindre l’objectif de poids CA représente <b>${meur(P.gapCAeur)} de CA encarté</b> à aller chercher (1 pt = ${meur(P.pt)}).`:`Le poids CA dépasse l’objectif de ${pts(A.gapCA)}, soit <b>${meur(-P.gapCAeur)} d’avance</b>.`):`Le levier le plus pénalisant est <b>${A.neg.name.toLowerCase()}</b> (${dmeur(A.neg.v)}).`;
   const p3b=pF&&pF.sc?` Priorité : <b>${pF.name}</b> (${pF.why.join(', ')}).`:'';
   $('#v-brief').innerHTML=`
-    <div class="greet">Bonjour Hajar · Programme Club · tout le périmètre · ${M.label}${PERIODS[0]&&FILT.per===PERIODS[0].v?' (dernière période)':''}</div>
+    <div class="greet">Bonjour · Programme Club · tout le périmètre · ${M.label}${PERIODS[0]&&FILT.per===PERIODS[0].v?' (dernière période)':''}</div>
     <div class="head-row"><div><h1 class="h1">${h1}</h1><p class="byline">Revue Programme Club · rédigée à partir des KPI certifiés du dashboard régalien${M.maj?' · données du '+M.maj:''}</p></div>
       <div class="btns"><button type="button" class="btn">${icon('bell')}Abonné</button><button type="button" class="btn primary">${icon('share')}Exporter &amp; partager</button></div></div>
     <div class="briefcard"><div class="eb">VOTRE BRIEF · TOUT LE PROGRAMME EN 30 SECONDES</div><div class="pts">
