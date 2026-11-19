@@ -317,6 +317,17 @@ table.t .r{text-align:right}
 .ej .d{font-size:12px;color:var(--muted)}
 .ej.n .v{color:var(--neg)} .ej.p .v{color:var(--accent)} .ej.s{background:var(--surface-2);border-style:dashed}
 @media (max-width:900px){.axes.pil{grid-template-columns:repeat(2,minmax(0,1fr))}.enj{grid-template-columns:minmax(0,1fr)}}
+
+/* Export */
+.expwrap{position:relative;display:inline-block}
+.expmenu{position:absolute;right:0;top:calc(100% + 6px);z-index:50;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 30px -10px rgba(14,23,38,.25);padding:6px;min-width:280px;display:flex;flex-direction:column}
+.expmenu[hidden]{display:none}
+.expmenu button{border:0;background:transparent;text-align:left;padding:9px 12px;border-radius:8px;display:flex;flex-direction:column;gap:1px;color:var(--ink)}
+.expmenu button:hover,.expmenu button:focus-visible{background:var(--accent-soft)}
+.expmenu b{font-size:13.5px} .expmenu span{font-size:12px;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:10px;font-size:13.5px;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,.2);max-width:min(560px,calc(100vw - 32px))}
+.toast[hidden]{display:none}
+@media print{.side,.topbar,#gbar,.btns,.sig-act,.ask-btn,.toc,.back,.toast,#ttmd{display:none!important}body{background:#fff}.main{margin:0!important;padding:0!important}.asec,.panel,.signal,.briefcard,.dec{break-inside:avoid}}
 </style>
 </head>
 <body>
@@ -744,6 +755,63 @@ function panoHtml(){const O=A.O,k=M.k;
     <div class="panel"><h3 style="font-size:14.5px">Territoires · dernière période disponible</h3>${terrT}</div>
     <div class="panel"><h3 style="font-size:14.5px">Clients</h3>${cliC}</div></div>`;}
 
+/* ===================== EXPORT & PARTAGE (tout se fait dans le navigateur, rien n'est envoyé) ===================== */
+function toast(msg){let t=$('#pulseToast');if(!t){t=document.createElement('div');t.id='pulseToast';t.className='toast';t.setAttribute('role','status');document.body.appendChild(t);}
+  t.textContent=msg;t.hidden=false;clearTimeout(t._h);t._h=setTimeout(()=>{t.hidden=true;},3500);}
+const expName=ext=>`Pulse_Programme_Club_${String(M.label||'').replace(/[^\w]+/g,'_')}.${ext}`;
+function expView(){return curView==='deep'?'deep':'brief';}
+/* Page autonome : styles de Pulse + contenu de la vue, sans boutons ni filtres */
+function expHtml(){const v=expView(),src=$('#v-'+v).cloneNode(true);
+  src.querySelectorAll('button,.btns,.sig-act,.ask-btn,.toc,.back,.gtoggle .gbtn,.expmenu,.briefcard .foot').forEach(e=>{if(e.matches('button.mini,button.dom')){const d=document.createElement('div');d.className=e.className;d.innerHTML=e.innerHTML;e.replaceWith(d);}else e.remove();});
+  src.querySelectorAll('svg.ico').forEach(e=>e.remove());src.hidden=false;
+  const css=[...document.querySelectorAll('style')].map(s=>s.textContent).join('\n');
+  const title=v==='deep'?'Analyse approfondie':'Brief';
+  return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pulse · Programme Club · ${esc(title)} · ${esc(M.label)}</title><style>${css}
+    body{background:var(--bg)} .xwrap{max-width:1080px;margin:0 auto;padding:28px 24px} .xhead{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:12px;font-size:12.5px;color:var(--muted)}
+    @media print{body{background:#fff}.xwrap{padding:0}.asec,.panel,.signal,.briefcard,.dec{break-inside:avoid}@page{margin:12mm}}</style></head>
+    <body><div class="xwrap"><div class="xhead"><b style="color:var(--ink)">Pulse · Programme Club · ${esc(title)}</b><span>${esc(M.label)} · exporté le ${new Date().toLocaleDateString('fr-FR')} · données Tableau Cloud</span></div>${src.innerHTML}</div></body></html>`;}
+function dl(name,content,type){try{const u=URL.createObjectURL(new Blob([content],{type}));const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);return true;}catch(e){console.warn('[Pulse] export',e);return false;}}
+function expPdf(){const html=expHtml();let w=null;try{w=window.open('','_blank');}catch(e){w=null;}
+  if(w&&w.document){w.document.open();w.document.write(html.replace('</body>','<script>setTimeout(function(){window.focus();window.print();},400)<\/script></body>'));w.document.close();toast('Choisissez « Enregistrer au format PDF » dans la fenêtre d’impression.');return;}
+  try{document.body.classList.add('printing');window.print();document.body.classList.remove('printing');}catch(e){if(dl(expName('html'),html,'text/html'))toast('Impression bloquée par Tableau : page téléchargée, ouvrez-la puis Ctrl+P.');}}
+function expText(){const {k}=M,P=A.P,O=A.O,L=[];const t=s=>String(s).replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/\s+/g,' ').trim();
+  L.push(`Pulse · Programme Club · ${M.label}`,'');
+  const h1=$('#v-brief .h1');if(h1)L.push(t(h1.innerHTML),'');
+  $('#v-brief').querySelectorAll('.briefcard .pt p').forEach((p,i)=>L.push(`${i+1}. ${t(p.innerHTML)}`));
+  L.push('','Chiffres clés',`- Poids CA encartés : ${pct(k.poids_ca,1)} (${pts(k.poids_ca-k.poids_ca_n1)} vs N-1)`,`- Poids Débit encartés : ${pct(k.poids_debit,1)}${A.gapDebit!=null?` (${pts(A.gapDebit)} vs objectif)`:''}`,
+    `- CA encartés : ${meur(k.ca_e)} (${evo(k.ev_ca_e)})`,`- Foyers actifs : ${cnt(k.foyers_n)} (solde ${S(A.solde)}${cnt(Math.abs(A.solde))})`,`- Recrues : ${cnt(k.recrues)} (${evo(k.ev_recrues)})`);
+  if(P&&P.gapCAeur!=null)L.push(`- ${P.gapCAeur>0?'CA encarté à aller chercher':'Avance sur l’objectif'} : ${meur(Math.abs(P.gapCAeur))}`);
+  const R=recos().slice(0,3);if(R.length){L.push('','Décisions proposées');R.forEach((r,i)=>L.push(`${i+1}. ${r[0]} · ${r[2]} · ${r[3]} · cible : ${t(r[4])}${r[6]?` · ${t(r[6])}`:''}`));}
+  if(A.signals.length){L.push('','Signaux');A.signals.forEach(s=>{const c=sigCard(s);L.push(`- [${s.tl}] ${t(c.title)}`);});}
+  L.push('','Source : dashboard régalien Programme Club (Tableau Cloud).');return L.join('\n');}
+async function expCopy(){const txt=expText();let ok=false;
+  try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(txt);ok=true;}}catch(e){ok=false;}
+  if(!ok){const ta=document.createElement('textarea');ta.value=txt;ta.setAttribute('readonly','');ta.style.cssText='position:fixed;top:0;left:0;opacity:0';document.body.appendChild(ta);ta.select();try{ok=document.execCommand('copy');}catch(e){ok=false;}ta.remove();}
+  if(ok)toast('Synthèse copiée : collez-la dans un mail ou dans Teams.');else{dl(expName('txt'),txt,'text/plain;charset=utf-8')?toast('Copie bloquée : synthèse téléchargée en .txt.'):toast('Export impossible dans ce navigateur.');}}
+function expCsv(){const {k}=M,P=A.P,O=A.O,q=v=>v==null||!isFinite(v)?'':String(Math.round(v*1e6)/1e6).replace('.',',');const L=[['Bloc','Élément','Indicateur','Valeur']];
+  const add=(b,e,i,v)=>L.push([b,e,i,typeof v==='number'?q(v):(v??'')]);
+  [['Poids CA encartés',k.poids_ca],['Poids CA N-1',k.poids_ca_n1],['Poids CA objectif',k.poids_ca_obj],['Poids Débit encartés',k.poids_debit],['Poids Débit N-1',k.poids_debit_n1],['Poids Débit objectif',k.poids_debit_obj],
+   ['CA encartés',k.ca_e],['CA encartés N-1',k.ca_e_n1],['CA non encartés',k.ca_ne],['CA non encartés N-1',k.ca_ne_n1],['Clients encartés',k.clients_e],['Fréquence',k.freq_e],['Panier',k.panier_e],
+   ['Recrues',k.recrues],['Recrues N-1',k.recrues_n1],['Foyers actifs',k.foyers_n],['Foyers actifs N-1',k.foyers_n1],['Foyers gagnés',k.foyers_gagnes],['Foyers perdus',k.foyers_perdus]].forEach(([n,v])=>add('KPI','Groupe',n,v));
+  if(P){add('Valeur en jeu','Groupe','CA encarté à aller chercher (€)',P.gapCAeur);add('Valeur en jeu','Groupe','Valeur d’un point de poids CA (€)',P.pt);add('Valeur en jeu','Groupe','Balance de valeur des foyers (€)',P.caNet);}
+  (O&&O.fmt||[]).forEach(f=>{add('Format',f.name,'Poids CA',f.poids_ca);add('Format',f.name,'Poids Débit',f.poids_db);add('Format',f.name,'Poids Débit vs objectif',f.gap);add('Format',f.name,'Évol. CA encartés',f.ev_ca);add('Format',f.name,'Évol. recrues',f.ev_rec);});
+  (O&&O.terr||[]).forEach(t=>{add('Territoire',t.f,'DT sous objectif',t.dtUnder);add('Territoire',t.f,'DT total',t.nDt);add('Territoire',t.f,'Magasins sous objectif',t.magUnder);add('Territoire',t.f,'Magasins total',t.nMag);});
+  M.acts.forEach(a=>{add('Activation',a.name,'Clients',a.clients);add('Activation',a.name,'Dépense moyenne',a.depense);add('Activation',a.name,'× référence',a.mult);});
+  const csv='﻿'+[[`Pulse Programme Club · ${M.label} · ${FILT.enc} · ${FILT.nc} · ${FILT.stat}`],...L].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(';')).join('\r\n');
+  dl(expName('csv'),csv,'text/csv;charset=utf-8')?toast('Chiffres téléchargés (.csv, ouvrable dans Excel).'):toast('Téléchargement bloqué par Tableau : utilisez « Copier la synthèse ».');}
+function expMenuHtml(){return `<div class="expwrap"><button type="button" class="btn primary" data-exp="toggle" aria-haspopup="menu" aria-expanded="false">${icon('share')}Exporter &amp; partager</button>
+  <div class="expmenu" role="menu" hidden>
+    <button type="button" role="menuitem" data-exp="pdf"><b>PDF</b><span>Imprimer ou enregistrer la page en PDF</span></button>
+    <button type="button" role="menuitem" data-exp="copy"><b>Copier la synthèse</b><span>Texte prêt à coller dans un mail ou Teams</span></button>
+    <button type="button" role="menuitem" data-exp="html"><b>Page HTML</b><span>Fichier autonome à partager</span></button>
+    <button type="button" role="menuitem" data-exp="csv"><b>Chiffres (.csv)</b><span>KPI, formats, territoires, activation</span></button></div></div>`;}
+function bindExport(root){const w=root.querySelector('.expwrap');if(!w)return;const b=w.querySelector('[data-exp="toggle"]'),m=w.querySelector('.expmenu');
+  const close=()=>{m.hidden=true;b.setAttribute('aria-expanded','false');};
+  b.addEventListener('click',e=>{e.stopPropagation();m.hidden=!m.hidden;b.setAttribute('aria-expanded',String(!m.hidden));});
+  document.addEventListener('click',e=>{if(!w.contains(e.target))close();});w.addEventListener('keydown',e=>{if(e.key==='Escape'){close();b.focus();}});
+  m.querySelectorAll('[data-exp]').forEach(x=>x.addEventListener('click',()=>{close();const a=x.dataset.exp;
+    if(a==='pdf')expPdf();else if(a==='copy')expCopy();else if(a==='csv')expCsv();else if(a==='html'){dl(expName('html'),expHtml(),'text/html;charset=utf-8')?toast('Page HTML téléchargée.'):toast('Téléchargement bloqué par Tableau : utilisez « PDF » ou « Copier la synthèse ».');}}));}
+
 function renderBrief(){const {k}=M,P=A.P,s0=A.signals[0],m=P.mom;
   const h1=`Le CA des encartés ${verb(k.ev_ca_e)} (${evo(k.ev_ca_e)})${s0&&s0.lv>=2?`, ${({Recrutement:'mais le recrutement '+(k.ev_recrues<0?'recule':'ralentit en '+A.recWorstF.name),Panier:'mais le panier recule','Base clients':'mais la base de porteurs diminue',Contribution:'mais le poids Débit reste sous l’objectif',Rétention:'mais les clients occasionnels décrochent'})[s0.dom]}`:''}`;
   const pF=P.fmt[0];
@@ -756,7 +824,7 @@ function renderBrief(){const {k}=M,P=A.P,s0=A.signals[0],m=P.mom;
   $('#v-brief').innerHTML=`
     <div class="greet">Bonjour · Programme Club · tout le périmètre · ${M.label}${PERIODS[0]&&FILT.per===PERIODS[0].v?' (dernière période)':''}</div>
     <div class="head-row"><div><h1 class="h1">${h1}</h1><p class="byline">Revue Programme Club · rédigée à partir des KPI certifiés du dashboard régalien${M.maj?' · données du '+M.maj:''}</p></div>
-      <div class="btns"><button type="button" class="btn">${icon('bell')}Abonné</button><button type="button" class="btn primary">${icon('share')}Exporter &amp; partager</button></div></div>
+      <div class="btns"><button type="button" class="btn">${icon('bell')}Abonné</button>${expMenuHtml()}</div></div>
     <div class="briefcard"><div class="eb">VOTRE BRIEF · TOUT LE PROGRAMME EN 30 SECONDES</div><div class="pts">
       <div class="pt"><span class="k">1</span><p><span class="ptl">Performance</span>${p1}</p></div>
       <div class="pt"><span class="k">2</span><p><span class="ptl">Base clients</span>${p2}</p></div>
@@ -788,7 +856,7 @@ function renderBrief(){const {k}=M,P=A.P,s0=A.signals[0],m=P.mom;
         <button type="button" class="btn sm" data-rg="groupe">${icon('grid',15)}Ouvrir le dashboard</button></div>
     </div></div>`;
   document.querySelector('.nav[data-go="brief"] .badge').textContent=A.signals.length;
-  bindCommon($('#v-brief'),'Ma journée · Programme Club');drawFigs($('#v-brief'));
+  bindCommon($('#v-brief'),'Ma journée · Programme Club');bindExport($('#v-brief'));drawFigs($('#v-brief'));
 }
 
 /* ===================== ANALYSE APPROFONDIE (niveau 2) ===================== */
@@ -843,7 +911,7 @@ function renderDeep(){const {k}=M,F=A.F;
   $('#v-deep').innerHTML=`
     <button type="button" class="back" data-go="brief">${icon('left')} Ma journée</button>
     <div class="crumb">Analyse approfondie · ${M.label} · encartés</div>
-    <h1 class="h1" style="max-width:none">Comprendre la performance du Programme Club</h1>
+    <div class="head-row"><h1 class="h1" style="max-width:none">Comprendre la performance du Programme Club</h1><div class="btns">${expMenuHtml()}</div></div>
     <p class="byline">De la performance d’ensemble aux causes racines et aux actions</p>
     <div class="toc"><span class="l">Sommaire</span>${SECTIONS.map((s,i)=>`<button type="button" data-sec="${s.id}">${i+1}. ${s.nav}</button>`).join('')}</div>
     ${SECTIONS.map((s,si)=>`<section class="asec" id="s-${s.id}"><div class="asec-h"><div><div class="eb">${si+1} · ${s.eb.replace(/^\d+ · /,'')}</div><h2>${s.title}</h2></div><button type="button" class="ask-btn" data-q="${s.q}">${icon('spark',15)}Demander à TTMD</button></div>
@@ -852,7 +920,7 @@ function renderDeep(){const {k}=M,F=A.F;
       ${s.recos?s.recos.map((r,j)=>`<div class="reco"><span class="k">${j+1}</span><div><b>${r[0]}</b><p>${r[1]}</p><div class="meta"><span>Porteur : <b>${r[2]}</b></span><span>Horizon : <b>${r[3]}</b></span><span>Cible : <b>${r[4]}</b></span>${r[6]?`<span class="imp">${r[6]}</span>`:''}<button type="button" class="btn sm" ${r[5]==='Chiffrer avec TTMD'?'data-q="eqc"':''}>${r[5]}</button></div></div></div>`).join(''):''}
       ${s.figs.length?`<div class="figs">${s.figs.map(f=>figHtml(f)).join('')}</div>`:''}</section>`).join('')}
     <div class="method"><b>Méthode et fiabilité.</b> ${M.label} vs N-1, encartés. ${MODE==='real'?'Chiffres lus dans les tables Pulse du dashboard Programme Club (Tableau Cloud), dans votre navigateur ; aucune donnée n’est envoyée ailleurs.':''} Les textes, signaux et hypothèses sont générés par des règles fixes à partir des KPI. Seules les lignes « Simulation » reposent sur une hypothèse, affichée à côté du montant.</div>`;
-  bindCommon($('#v-deep'),'Analyse approfondie · Programme Club');drawFigs($('#v-deep'));
+  bindCommon($('#v-deep'),'Analyse approfondie · Programme Club');bindExport($('#v-deep'));drawFigs($('#v-deep'));
 }
 
 /* ===================== DASHBOARD RÉGALIEN (structure du workbook) ===================== */
