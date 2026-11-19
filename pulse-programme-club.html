@@ -322,9 +322,9 @@ table.t .r{text-align:right}
   <span class="logo"><svg class="ico"><use href="#i-pulse"/></svg></span>
   <div class="brand"><b>Pulse</b><span>Plateforme Data Products &amp; IA</span></div>
   <div class="tb-right">
-    <span class="chip src" id="srcChip"><svg class="ico" style="width:15px;height:15px"><use href="#i-db"/></svg> Données fictives de démonstration</span>
+    <span class="chip src" id="srcChip"><svg class="ico" style="width:15px;height:15px"><use href="#i-db"/></svg> Tableau Cloud · dashboard régalien Programme Club</span>
     <span class="chip prof">Profil <b>Siège · Resp. fidélité</b></span>
-    <span class="chip demo" id="modeChip">Mode démo · données fictives</span>
+    <span class="chip demo" id="modeChip">Connexion à Tableau Cloud…</span>
     <button type="button" class="bell" aria-label="Notifications"><svg class="ico"><use href="#i-bell"/></svg></button>
   </div>
 </header>
@@ -333,6 +333,7 @@ table.t .r{text-align:right}
   <nav class="side" aria-label="Navigation">
     <button type="button" class="nav" data-go="brief" aria-current="page"><svg class="ico"><use href="#i-sun"/></svg>Ma journée<span class="badge n">5</span></button>
     <button type="button" class="nav" data-go="deep"><svg class="ico"><use href="#i-trend"/></svg>Analyse approfondie<span class="badge t">7 min</span></button>
+    <button type="button" class="nav" data-go="hist"><svg class="ico"><use href="#i-trend"/></svg>Historique<span class="badge t">toutes périodes</span></button>
     <button type="button" class="nav" data-go="ttmd"><svg class="ico"><use href="#i-chat"/></svg>Talk to my Data<span class="badge ia">IA</span></button>
     <div class="grp">DASHBOARDS RÉGALIENS</div>
     <button type="button" class="nav" data-go="rg"><svg class="ico"><use href="#i-grid"/></svg>Programme Club</button>
@@ -344,7 +345,7 @@ table.t .r{text-align:right}
     <button type="button" class="nav muted hide-sm" disabled><svg class="ico"><use href="#i-layout"/></svg>Studio de cockpit</button>
     <div class="grp">GOUVERNANCE</div>
     <button type="button" class="nav muted hide-sm" disabled><svg class="ico"><use href="#i-eye"/></svg>Observabilité</button>
-    <div class="perim"><b>Votre périmètre</b>National · encartés</div>
+    <div class="perim"><b>Votre périmètre</b>National</div>
   </nav>
 
   <div class="stage">
@@ -353,6 +354,7 @@ table.t .r{text-align:right}
       <section class="view" id="v-brief"></section>
       <section class="view" id="v-deep" hidden></section>
       <section class="view" id="v-rg" hidden></section>
+      <section class="view" id="v-hist" hidden></section>
     </div></main>
     <aside class="ttmd" id="ttmd" hidden aria-label="Talk to my Data">
       <div class="tt-h">
@@ -395,54 +397,9 @@ const pill=(r,kind='evo')=>`<span class="pill ${cls(r)}">${kind==='pts'?pts(r):e
 const ev=(n,n1)=>n1?n/n1-1:null;
 const verb=(r,a='progresse',b='recule',c='est stable')=>Math.abs(r)<0.0005?c:r>0?a:b;
 
-/* ===================== DONNÉES FICTIVES (mode démo) =====================
-   Format unique, identique à la feuille Tableau PULSE_DATA :
-   [bloc, dim, mesure, valeur, ordre] · ratios en décimal (0,5458 = 54,58 %), montants en €, volumes en unités */
-function demoRows(){
-  const R=[],a=(b,d,m,v,o)=>R.push([b,d,m,v,o==null?null:o]);
-  a('meta','','semaine',46);a('meta','','annee',2026);a('meta','','maj',20261116);a('meta','Hyper','format_focus',1);
-  const K={    clients_e:11.2e6,clients_e_n1:11.3e6,freq_e:27.68,freq_e_n1:26.19,depense_e:1357.1,depense_e_n1:1323.0,panier_e:49.03,panier_e_n1:50.51,articles_e:14.8,articles_e_n1:15.1,prix_e:3.313,prix_e_n1:3.345,
-    panier_ne:16.39,panier_ne_n1:17.17,articles_ne:5.2,articles_ne_n1:5.5,prix_ne:3.152,prix_ne_n1:3.121,
-    foyers_n:9.10e6,foyers_n1:9.25e6,foyers_gagnes:1.85e6,foyers_perdus:2.0e6,ca_solde_n1:4.60e9,ca_gagnes:420e6,ca_constants:60e6,ca_perdus:-380e6,ca_solde_n:4.70e9,
-    cst_ca_n1:4.10e9,cst_ca_n:4.16e9,cst_depense_n1:512.0,cst_depense_n:519.6,cst_freq_n1:10.6,cst_freq_n:10.8,cst_panier_n1:48.3,cst_panier_n:48.1,cst_articles_n1:14.9,cst_articles_n:14.7,cst_prix_n1:3.24,cst_prix_n:3.27,
-    seg_ca:320e6,seg_ca_n1:316e6,seg_clients:3.9e6,seg_depense:82.05,seg_panier:47.9};
-  Object.entries(K).forEach(([m,v])=>a('kpi','',m,v));
-  const F=[ // nom, ca_e,n1, ca_ne,n1, debit_e,n1, debit_ne,n1, obj_ca, obj_debit, recrues,n1, foyers,n1, effets (format_ca,mix_ca,format_debit,mix_debit)
-    ['Groupe',15.2e9,14.95e9,11.8e9,12.05e9,310e6,296e6,720e6,702e6,.57,.315,1.12e6,1.09e6,9.10e6,9.25e6,null],
-    ['Hyper',7.4e9,7.45e9,3.1e9,3.25e9,118e6,116e6,112e6,115e6,.71,.52,400e3,380e3,5.2e6,5.35e6,[.0030,-.0020,.0024,-.0010]],
-    ['Market',5.1e9,5.0e9,3.9e9,3.95e9,115e6,110e6,180e6,178e6,.58,.40,300e3,315e3,4.1e6,4.15e6,[.0028,-.0004,.0018,-.0006]],
-    ['Proxi',1.4e9,1.3e9,4.7e9,4.75e9,62e6,56e6,427e6,408e6,.25,.14,200e3,195e3,2.3e6,2.2e6,[.0040,-.0019,.0028,-.0016]],
-    ['E-commerce',1.3e9,1.2e9,0.1e9,0.1e9,15e6,14e6,1e6,1e6,null,null,220e3,200e3,1.0e6,0.95e6,[.0003,.0035,.0001,.0005]]];
-  F.forEach((f,i)=>{const n=f[0],o=i+1;
-    a('format',n,'ca_e',f[1],o);a('format',n,'ca_e_n1',f[2],o);a('format',n,'ca_ne',f[3],o);a('format',n,'ca_ne_n1',f[4],o);
-    a('format',n,'debit_e',f[5],o);a('format',n,'debit_e_n1',f[6],o);a('format',n,'debit_ne',f[7],o);a('format',n,'debit_ne_n1',f[8],o);
-    if(f[9]!=null)a('format',n,'poids_ca_obj',f[9],o);if(f[10]!=null)a('format',n,'poids_debit_obj',f[10],o);
-    a('format',n,'recrues',f[11],o);a('format',n,'recrues_n1',f[12],o);a('format',n,'foyers',f[13],o);a('format',n,'foyers_n1',f[14],o);
-    if(f[15]){a('format',n,'effet_format_ca',f[15][0],o);a('format',n,'effet_mix_ca',f[15][1],o);a('format',n,'effet_format_debit',f[15][2],o);a('format',n,'effet_mix_debit',f[15][3],o);}});
-  [['Clients',-131e6],['Fréquence',840e6],['Prix',-160e6],['Articles / panier',-290e6],['Effets croisés',-9e6]].forEach((e,i)=>a('eqc_e',e[0],'effet',e[1],i+1));
-  [['Débit',310e6],['Prix',120e6],['Articles / panier',-660e6],['Effets croisés',-20e6]].forEach((e,i)=>a('eqc_ne',e[0],'effet',e[1],i+1));
-  [['Hebdomadaires',150e6,143e6,1.6e6,.041,.006,.002],['Bi-mensuels',85e6,84e6,1.05e6,.008,.004,0],['Mensuels',55e6,56e6,.85e6,-.012,-.004,-.002],['Irréguliers',30e6,33e6,.4e6,-.07,-.02,0]]
-    .forEach((s,i)=>{const o=i+1;a('segment',s[0],'ca',s[1],o);a('segment',s[0],'ca_n1',s[2],o);a('segment',s[0],'clients',s[3],o);a('segment',s[0],'effet_clients',s[4],o);a('segment',s[0],'effet_freq',s[5],o);a('segment',s[0],'effet_panier',s[6],o);});
-  [1.0,1.4,1.9,2.2,2.8,3.1,3.6,3.9,4.2,4.5,4.8,5.0,5.1,5.2,5.3,5.3].forEach((v,i)=>a('rec_semaine','S'+(31+i),'ecart_cumule',v/100,31+i));
-  [['Application',.42,.37,.55,.48],['Carrefour.fr',.24,.23,.19,.18],['Cartes',.34,.40,.26,.34]].forEach((c,i)=>{const o=i+1;a('canal',c[0],'part_groupe',c[1],o);a('canal',c[0],'part_groupe_n1',c[2],o);a('canal',c[0],'part_focus',c[3],o);a('canal',c[0],'part_focus_n1',c[4],o);});
-  [['Bretagne',30e3,28e3,.007],['Normandie',18e3,19e3,-.002],['Île-de-France',95e3,90e3,.012],['Hauts-de-France',38e3,37e3,.009],['Grand Est',22e3,23e3,.004],['PACA',45e3,41e3,.015],['Occitanie',44e3,40e3,.011],['Nouvelle-Aquitaine',36e3,35e3,.006],['Auvergne-Rhône-Alpes',40e3,38e3,.010],['Pays de la Loire',15e3,14e3,.008],['Centre-Val de Loire',14e3,13.5e3,.003]]
-    .forEach(r=>{a('region',r[0],'recrues',r[1]);a('region',r[0],'recrues_n1',r[2]);a('region',r[0],'ecart_poids_debit',r[3]);});
-  [['DT Nord',22,.49,.485,.505,48e3,47e3],['DT Est',18,.51,.50,.515,40e3,39e3],['DT Île-de-France',30,.47,.46,.49,70e3,62e3],['DT Ouest',25,.55,.545,.55,55e3,51e3],['DT Sud-Ouest',20,.53,.52,.535,45e3,44e3],['DT Sud-Est',24,.56,.55,.555,60e3,55e3],['DT Centre',12,.50,.495,.51,25e3,26e3],['DT Rhône-Alpes',19,.54,.53,.545,57e3,56e3]]
-    .forEach((d,i)=>{const o=i+1;a('dt',d[0],'nb_mag',d[1],o);a('dt',d[0],'poids_debit',d[2],o);a('dt',d[0],'poids_debit_n1',d[3],o);a('dt',d[0],'poids_debit_obj',d[4],o);a('dt',d[0],'recrues',d[5],o);a('dt',d[0],'recrues_n1',d[6],o);});
-  [['Magasin H01',.62,.59,.60],['Magasin H02',.48,.45,.47],['Magasin H03',.55,.53,.54],['Magasin H04',.41,.40,.45],['Magasin H05',.39,.40,.44],['Magasin H06',.58,.57,.57],['Magasin H07',.36,.37,.41],['Magasin H08',.52,.49,.50],['Magasin H09',.44,.45,.48],['Magasin H10',.60,.58,.585]]
-    .forEach(m=>{a('mag_poids',m[0],'poids_debit',m[1]);a('mag_poids',m[0],'poids_debit_n1',m[2]);a('mag_poids',m[0],'poids_debit_obj',m[3]);});
-  [['Magasin H11',3.1e3,2.2e3],['Magasin H12',2.4e3,2.0e3],['Magasin H13',1.9e3,1.7e3],['Magasin H14',1.2e3,1.6e3],['Magasin H15',0.9e3,1.3e3],['Magasin H16',2.0e3,2.3e3],['Magasin H17',1.5e3,1.4e3],['Magasin H18',0.8e3,1.0e3],['Magasin H19',2.6e3,2.5e3],['Magasin H20',1.1e3,0.9e3]]
-    .forEach(m=>{a('mag_rec',m[0],'recrues',m[1]);a('mag_rec',m[0],'recrues_n1',m[2]);});
-  [['Membres Club',12.0e6,11.9e6,1420,1400,1],['Clients Pass',.9e6,.85e6,2650,2600,0],['Membres Communauté',.6e6,.45e6,2400,2550,0],['Utilisateurs App',3.8e6,3.3e6,1890,1930,0],['Avantages activés',8.1e6,7.5e6,1580,1610,0]]
-    .forEach((v,i)=>{const o=i+1;a('activation',v[0],'clients',v[1],o);a('activation',v[0],'clients_n1',v[2],o);a('activation',v[0],'depense',v[3],o);a('activation',v[0],'depense_n1',v[4],o);a('activation',v[0],'reference',v[5],o);});
-  [['Mono format',4.3e6,.47,.49],['Multi offline',3.3e6,.36,.36],['Multi online',1.25e6,.137,.12],['Exclusif online',.3e6,.033,.03]].forEach((m,i)=>{const o=i+1;a('mixite',m[0],'foyers',m[1],o);a('mixite',m[0],'part',m[2],o);a('mixite',m[0],'part_n1',m[3],o);});
-  const MC=['Exclusif online','Mono format','Multi offline','Multi online'],MV=[[.62,.10,.04,.24],[.004,.75,.20,.046],[.002,.24,.69,.068],[.03,.14,.20,.63]];
-  MC.forEach((f,i)=>MC.forEach((t,j)=>a('matrice',f+'>'+t,'part',MV[i][j],i*10+j)));
-  return R;
-}
 
 /* ===================== MODÈLE ===================== */
-let M=null, MODE='demo', MODE_MSG='';
+let M=null, MODE='wait', MODE_MSG='';
 let CTXL={};
 function buildModel(rows){
   const B={};
@@ -665,7 +622,7 @@ function openTT(key,ctx){
   const [q,a,src]=qa(key);body.innerHTML=`<div class="msg-u">${q}</div><div class="steps" id="stp"></div>`;
   const labels=['Compréhension de la question','Requête sur les KPI certifiés','Contrôle des chiffres','Rédaction de la réponse'],reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;let i=0;
   const draw=()=>{const st=$('#stp');if(st)st.innerHTML='<span class="eb">ANALYSE EN COURS</span>'+labels.map((l,j)=>j<i?`<span class="s2">✓ ${l}</span>`:j===i?`<span class="s1">… ${l}</span>`:`<span class="s0">○ ${l}</span>`).join('');};
-  const tick=()=>{i++;draw();if(i<labels.length)setTimeout(tick,reduce?0:340);else{const st=$('#stp');if(st)st.remove();body.insertAdjacentHTML('beforeend',`<div class="msg-a">${a}<div class="srcs">Source : ${src} · ${MODE==='real'?'dashboard régalien Programme Club (Tableau Cloud)':'données fictives de démonstration'}</div></div>`+suggHtml(key));bindSugg();}};
+  const tick=()=>{i++;draw();if(i<labels.length)setTimeout(tick,reduce?0:340);else{const st=$('#stp');if(st)st.remove();body.insertAdjacentHTML('beforeend',`<div class="msg-a">${a}<div class="srcs">Source : ${src} · ${MODE==='real'?'dashboard régalien Programme Club (Tableau Cloud)':'dashboard régalien Programme Club (Tableau Cloud)'}</div></div>`+suggHtml(key));bindSugg();}};
   draw();setTimeout(tick,reduce?0:340);
 }
 function suggHtml(skip){return `<div class="sugg"><span class="eb">QUESTIONS SUGGÉRÉES</span>${QKEYS.filter(k=>k!==skip).slice(0,4).map(k=>`<button type="button" data-qq="${k}">${qa(k)[0]}</button>`).join('')}</div>`;}
@@ -758,7 +715,7 @@ function renderDeep(){const {k}=M,F=A.F;
       ${s.hyps?`<div class="hyps">${s.hyps.map(h=>`<div class="hyp ${h[0]==='r'?'rej':''}"><div class="hyp-h"><span class="st ${h[0]}">${h[1]}</span><b>${h[2]}</b><span class="imp ${h[0]==='r'?'z':''}">${h[3]}</span></div><p>${h[4]}</p><span class="s">Source : ${h[5]}</span></div>`).join('')}</div>`:''}
       ${s.recos?s.recos.map((r,j)=>`<div class="reco"><span class="k">${j+1}</span><div><b>${r[0]}</b><p>${r[1]}</p><div class="meta"><span>Porteur : <b>${r[2]}</b></span><span>Horizon : <b>${r[3]}</b></span><span>Cible : <b>${r[4]}</b></span><button type="button" class="btn sm" ${r[5]==='Chiffrer avec TTMD'?'data-q="eqc"':''}>${r[5]}</button></div></div></div>`).join(''):''}
       ${s.figs.length?`<div class="figs">${s.figs.map(f=>figHtml(f)).join('')}</div>`:''}</section>`).join('')}
-    <div class="method"><b>Méthode et fiabilité.</b> ${M.label} vs N-1, encartés. ${MODE==='real'?'Chiffres lus dans la feuille PULSE_DATA du dashboard régalien Programme Club (Tableau Cloud), dans votre navigateur ; aucune donnée n’est envoyée ailleurs.':'<b>Mode démonstration : toutes les données de cette page sont fictives.</b>'} Les textes, signaux et hypothèses sont générés par des règles fixes à partir des KPI ; aucun chiffre n’est estimé.</div>`;
+    <div class="method"><b>Méthode et fiabilité.</b> ${M.label} vs N-1, encartés. ${MODE==='real'?'Chiffres lus dans la feuille PULSE_DATA du dashboard régalien Programme Club (Tableau Cloud), dans votre navigateur ; aucune donnée n’est envoyée ailleurs.':''} Les textes, signaux et hypothèses sont générés par des règles fixes à partir des KPI ; aucun chiffre n’est estimé.</div>`;
   bindCommon($('#v-deep'),'Analyse approfondie · Programme Club');drawFigs($('#v-deep'));
 }
 
@@ -815,7 +772,7 @@ function rgPageBody(){const {k}=M,mes=rgMes;
 }
 function renderRG(){
   $('#v-rg').innerHTML=`<div class="crumb">Dashboards régaliens</div>
-    <div class="rg-head"><div><h1 class="h1" style="max-width:none">Programme Club <span style="color:var(--muted);font-weight:500">| ${RG_TITLES[rgPage]}</span></h1><p class="byline">${MODE==='real'?'<span class="cert">✓ Certifié</span> &nbsp;Dashboard régalien Programme Club · Tableau Cloud':'<span class="cert" style="color:var(--alert);background:var(--alert-soft)">Données fictives</span> &nbsp;Mode démonstration'}${M.maj?' · données du '+M.maj:''}</p></div>
+    <div class="rg-head"><div><h1 class="h1" style="max-width:none">Programme Club <span style="color:var(--muted);font-weight:500">| ${RG_TITLES[rgPage]}</span></h1><p class="byline">${MODE==='real'?'<span class="cert">✓ Certifié</span> &nbsp;Dashboard régalien Programme Club · Tableau Cloud':'<span class="cert">✓ Certifié</span> &nbsp;Dashboard régalien Programme Club · Tableau Cloud'}${M.maj?' · données du '+M.maj:''}</p></div>
       <div class="btns"><button type="button" class="btn" data-go="brief">${icon('sun')}Lire le brief</button><button type="button" class="btn primary" data-go="deep">${icon('trend')}Analyse approfondie</button></div></div>
     <div class="rgwrap"><nav class="rgnav" aria-label="Pages du dashboard">${RG_PAGES.map(([g,items])=>`<div class="rgg">${g}</div>${items.map(([kk,l])=>`<button type="button" data-page="${kk}" aria-current="${kk===rgPage?'page':'false'}">${l}</button>`).join('')}`).join('')}</nav>
       <div class="rgcontent fade"><p class="rgdesc">${RG_DESC[rgPage]}</p>${rgFilters()}${rgPageBody()}</div></div>`;
@@ -827,7 +784,7 @@ function renderRG(){
 /* ===================== NAVIGATION ===================== */
 let curView='brief';
 function setNav(v){document.querySelectorAll('.side .nav[data-go]').forEach(n=>{n.removeAttribute('aria-current');if(n.dataset.go===v)n.setAttribute('aria-current','page');});}
-function show(v,opt){curView=v;['brief','deep','rg'].forEach(x=>$('#v-'+x).hidden=x!==v);setNav(v);
+function show(v,opt){if(!M)return;curView=v;['brief','deep','rg','hist'].forEach(x=>$('#v-'+x).hidden=x!==v);setNav(v);
   if(v==='rg'){if(opt)rgPage=opt;renderRG();}
   const el=$('#v-'+v);el.classList.remove('fade');void el.offsetWidth;el.classList.add('fade');
   if(v==='deep'&&opt){const t=$('#s-'+opt);if(t){t.scrollIntoView({behavior:'smooth',block:'start'});return;}}
@@ -838,9 +795,13 @@ function bindCommon(root,ctx){
   root.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.go)));
   root.querySelectorAll('[data-rg]').forEach(b=>b.addEventListener('click',()=>show('rg',b.dataset.rg)));}
 function setMode(mode,msg){MODE=mode;MODE_MSG=msg||'';const c=$('#modeChip');
-  c.className='chip '+(mode==='real'?'real':'demo');c.textContent=mode==='real'?'Données réelles · Tableau Cloud':mode==='err'?msg:'Mode démo · données fictives';
-  $('#srcChip').lastChild.textContent=mode==='real'?' Tableau Cloud · dashboard régalien Programme Club':' Données fictives de démonstration';}
-function renderAll(){figN=0;A=analyse();renderGbar();renderBrief();renderDeep();if(curView==='rg')renderRG();else if(!$('#v-rg').hidden)renderRG();$('#ttmd').hidden=true;}
+  c.className='chip '+(mode==='real'?'real':'demo');c.textContent=mode==='real'?'Données réelles · Tableau Cloud':msg||'Connexion à Tableau Cloud…';
+  $('#srcChip').lastChild.textContent=' Tableau Cloud · dashboard régalien Programme Club';if(!M)splash();}
+function splash(ck){const inT=window.self!==window.top;['brief','deep','rg','hist'].forEach(x=>{const e=$('#v-'+x);if(e)e.hidden=x!=='brief';});
+  $('#v-brief').innerHTML=`<div class="splash" style="max-width:640px;margin:8vh auto 0;text-align:center"><div class="eb" style="font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--accent);text-transform:uppercase">Pulse · Programme Club</div>
+   <h1 class="h1" style="margin:10px auto 10px;max-width:none">${inT?'Connexion aux données Programme Club':'Pulse s’ouvre dans Tableau Cloud'}</h1>
+   <p class="byline" style="font-size:15px;line-height:1.6">${inT?(ck?'Le navigateur ne transmet pas la session Tableau Cloud à l’extension (cookies tiers bloqués). Autorisez les cookies tiers pour <b>[*.]online.tableau.com</b> dans les paramètres du navigateur, puis rechargez la page.':esc(MODE_MSG||'Initialisation…')+'<br>Pulse lit les chiffres certifiés du dashboard Programme Club avec vos droits Tableau.'):'Cette page ne contient aucune donnée. Ouvrez le dashboard <b>Pulse Programme Club</b> sur Tableau Cloud pour lire la performance du programme.'}</p></div>`;}
+function renderAll(){if(!M){splash();return;}figN=0;A=analyse();renderGbar();renderBrief();renderDeep();renderHist();if(curView==='rg')renderRG();else if(!$('#v-rg').hidden)renderRG();if(!['brief','deep','rg','hist'].some(x=>!$('#v-'+x).hidden))show('brief');$('#ttmd').hidden=true;}
 
 document.querySelectorAll('.side .nav[data-go]').forEach(n=>n.addEventListener('click',()=>{if(n.dataset.go==='ttmd')openTT(null,{brief:'Ma journée',deep:'Analyse approfondie',rg:'Dashboard régalien'}[curView]+' · Programme Club');else show(n.dataset.go);}));
 $('#ttClose').addEventListener('click',()=>{$('#ttmd').hidden=true;setNav(curView);});
@@ -872,12 +833,12 @@ const perLab=(key,t)=>{if(!key)return '';const y=key.slice(0,4),u=key[4],n=+key.
 function ctxLabels(){const p=PERIODS.find(x=>x.v===FILT.per)||PERIODS[0];const l=p?p.l:'';
   CTXL={label:l?(FILT.tempo==='Hebdo'?'semaine '+l:FILT.tempo==='Mensuel'?'mois '+l:l):'',short:l,ax:AXS[FILT.axe]||'DT',
     scope:[FILT.enc==='PASS'?'Clients PASS':'Encartés',{Exclu:'New Carrefour exclu',Inclus:'New Carrefour inclus','New Carrefour':'New Carrefour seul'}[FILT.nc],FILT.stat==='Total'?'tous statuts':FILT.stat].join(' · ')};}
-function renderGbar(){const el=$('#gbar');if(!el)return;const live=MODE==='real'||(MODE==='err'&&PAR);
+function renderGbar(){const el=$('#gbar');if(!el)return;if(!M){el.innerHTML='';return;}const live=MODE==='real'||(MODE==='err'&&PAR);
   const sel=c=>{const opts=c.k==='per'?(PERIODS.length?PERIODS:[{v:'',l:M.perS||'Dernière'}]):c.o.map(x=>({v:x,l:x}));
     return `<div class="filt"><label for="g_${c.k}">${c.l}</label><select id="g_${c.k}" data-k="${c.k}" ${live&&!BUSY?'':'disabled'}>${opts.map(o=>`<option value="${esc(o.v)}"${o.v===FILT[c.k]?' selected':''}>${esc(o.l)}</option>`).join('')}</select></div>`;};
   el.innerHTML=`<div class="filters gbar${BUSY?' busy':''}">${CTRL.filter(c=>c.main).map(sel).join('')}<button type="button" class="gmore-btn" id="gMore" aria-expanded="${gbarOpen}">${gbarOpen?'− Moins de filtres':'+ Plus de filtres'}</button>
     ${gbarOpen?`<div class="gmore">${CTRL.filter(c=>!c.main).map(sel).join('')}</div>`:''}
-    <p class="note">${BUSY?'<b>Mise à jour…</b> Tableau recalcule le dashboard, puis Pulse relit les chiffres.':live?'Mêmes filtres que le dashboard régalien. Ils s’appliquent au brief, à l’analyse et au dashboard.':'Filtres actifs dans Tableau Cloud. Ici, les données fictives ne changent pas.'}</p></div>`;
+    <p class="note">${BUSY?'<b>Mise à jour…</b> Tableau recalcule le dashboard, puis Pulse relit les chiffres.':live?'Mêmes filtres que le dashboard régalien. Ils s’appliquent au brief, à l’analyse et au dashboard.':'Connexion à Tableau Cloud en cours…'}</p></div>`;
   el.querySelectorAll('select[data-k]').forEach(s=>s.addEventListener('change',e=>{const k=e.target.dataset.k;FILT[k]=e.target.value;if(k==='tempo')FILT.per='';refreshTableau();}));
   $('#gMore').addEventListener('click',()=>{gbarOpen=!gbarOpen;renderGbar();});
   const pm=document.querySelector('.side .perim');if(pm)pm.innerHTML=`<b>Votre périmètre</b>National · ${esc(M.scope||'encartés')}`;
@@ -930,8 +891,94 @@ async function refreshTableau(){if(!PAR||BUSY)return;BUSY=true;loadPeriods();ren
   catch(e){setMode('err',(e&&e.user)||'Lecture Tableau impossible pour ce filtre');console.warn('[Pulse]',e);}
   BUSY=false;renderAll();}
 
-/* ===================== DÉMARRAGE : démo, puis vraies données si on est dans Tableau ===================== */
-M=buildModel(demoRows());setMode('demo');renderAll();
+/* ===================== HISTORIQUE : toutes les périodes, depuis les tables sources =====================
+   Pulse lit les tables complètes des sources du dashboard (Encartage_Groupe, EQC) : toutes les périodes,
+   toutes les temporalités, tous les formats. Les KPI se recalculent sans repasser par Tableau. */
+let RAW=null,HIST=null;
+const HCOLS={EG:['Identifiant','Temporalite','Enseigne','Flag clients','Flag cora','statut_desc','Vision','CA total N','CA total N1','Debit N','Debit N1','obj_PoidsCAEncarte','obj_PoidsDebitsEncartes'],
+  EQ:['Identifiant','Temporalite','Enseigne','Flag clients','Flag cora','statut_desc','Vision','nb clients N','nb clients N1','Freq N','Freq N1','Panier Moyen N','Panier Moyen N1','Depense M N','Depense M N1','Prix moyen N','Prix moyen N1','Article moyen N','Article moyen N1','CA total N','CA total N1']};
+async function readLogical(ds,caption,keep){
+  const lt=(await ds.getLogicalTablesAsync()).find(t=>t.caption===caption);if(!lt)throw {user:'Table source introuvable : '+caption};
+  const r=await ds.getLogicalTableDataReaderAsync(lt.id,20000);const out=[];let ix=null;
+  for(let i=0;i<r.pageCount;i++){const p=await r.getPageAsync(i);
+    if(!ix){const names=p.columns.map(c=>c.fieldName);ix=keep.map(n=>names.indexOf(n));}
+    p.data.forEach(row=>{const o={};keep.forEach((n,j)=>{const c=ix[j]>=0?row[ix[j]]:null;o[n]=c==null?null:(c.nativeValue!==undefined?c.nativeValue:c.value);});out.push(o);});}
+  await r.releaseAsync();return out;}
+async function loadRaw(worksheets){
+  // on retrouve les sources via n'importe quelle feuille qui les utilise
+  const found={};
+  for(const ws of worksheets){if(found.EG&&found.EQ)break;let dss=[];try{dss=await ws.getDataSourcesAsync();}catch(e){continue;}
+    dss.forEach(d=>{if(d.name==='Encartage_Groupe'&&!found.EG)found.EG=d;if(d.name==='EQC'&&!found.EQ)found.EQ=d;});}
+  if(!found.EG||!found.EQ)throw {user:'Sources Encartage_Groupe / EQC introuvables'};
+  const [EG,EQ]=await Promise.all([readLogical(found.EG,'Encartage_Groupe',HCOLS.EG),readLogical(found.EQ,'EQC',HCOLS.EQ)]);
+  return {EG,EQ};}
+const TEMPO_RAW={Hebdo:'S',Mensuel:'M',CAD:'CAD S',CAM:'CAM S'},CORA_RAW={Exclu:'0',Inclus:'1','New Carrefour':'2'};
+const ENS_RAW={Groupe:'Groupe',Hyper:'1- HYPER',Market:'2- MARKET',Proxi:'3- PROXI','E-commerce':'E-com'};
+function buildHist(){
+  if(!RAW)return null;const F=FILT,tp=TEMPO_RAW[F.tempo],cora=CORA_RAW[F.nc],st=F.stat,enc=F.enc==='PASS'?'PASS':'Encarté';
+  const ok=r=>r.Temporalite===tp&&String(r['Flag cora'])===cora&&r.statut_desc===st;
+  const per={};const P=id=>(per[id]=per[id]||{id,key:perKey(id),f:{}});
+  RAW.EG.filter(ok).forEach(r=>{const e=fmtName(r.Enseigne)||r.Enseigne,o=(P(r.Identifiant).f[e]=P(r.Identifiant).f[e]||{}),fl=r['Flag clients'];
+    const tag=fl===enc?'e':fl==='Groupe'?'g':fl==='Non Encarté'?'ne':null;if(!tag)return;
+    o['ca_'+tag]=r['CA total N'];o['ca_'+tag+'_n1']=r['CA total N1'];o['db_'+tag]=r['Debit N'];o['db_'+tag+'_n1']=r['Debit N1'];
+    if(tag==='e'){if(r.obj_PoidsCAEncarte!=null)o.obj_ca=r.obj_PoidsCAEncarte;if(r.obj_PoidsDebitsEncartes!=null)o.obj_db=r.obj_PoidsDebitsEncartes;}});
+  const eqE=ENS_RAW[F.eqc]||'Groupe';
+  RAW.EQ.filter(r=>ok(r)&&r.Enseigne===eqE).forEach(r=>{const fl=r['Flag clients'];if(fl!==enc&&fl!=='Non Encarté')return;const t=fl===enc?'e':'ne';const q=(P(r.Identifiant).q=P(r.Identifiant).q||{});
+    [['clients','nb clients N'],['freq','Freq N'],['panier','Panier Moyen N'],['depense','Depense M N'],['prix','Prix moyen N'],['articles','Article moyen N']].forEach(([k,c])=>{q[k+'_'+t]=r[c];q[k+'_'+t+'_n1']=r[c.replace(/ N$/,' N1')];});});
+  const rows=Object.values(per).filter(p=>p.key).sort((a,b)=>a.key<b.key?-1:1).map(p=>{const out={id:p.id,key:p.key,label:perLab(p.key,F.tempo),fmt:{}};
+    Object.entries(p.f).forEach(([e,o])=>{const x={poids_ca:o.ca_g?o.ca_e/o.ca_g:null,poids_ca_n1:o.ca_g_n1?o.ca_e_n1/o.ca_g_n1:null,poids_db:o.db_g?o.db_e/o.db_g:null,poids_db_n1:o.db_g_n1?o.db_e_n1/o.db_g_n1:null,
+      ev_ca_e:o.ca_e_n1?o.ca_e/o.ca_e_n1-1:null,ev_ca_ne:o.ca_ne_n1?o.ca_ne/o.ca_ne_n1-1:null,ev_db_e:o.db_e_n1?o.db_e/o.db_e_n1-1:null,ca_e:o.ca_e,db_e:o.db_e};
+      x.obj_ca=o.obj_ca!=null&&x.poids_ca_n1!=null?x.poids_ca_n1+o.obj_ca:null;x.obj_db=o.obj_db!=null&&x.poids_db_n1!=null?x.poids_db_n1+o.obj_db:null;out.fmt[e]=x;});
+    const q=p.q||{};out.q=q;['clients','freq','panier','depense','prix','articles'].forEach(k=>{out['ev_'+k]=q[k+'_e_n1']?q[k+'_e']/q[k+'_e_n1']-1:null;});return out;});
+  return {rows,tempo:F.tempo,scope:M.scope||'',n:rows.length};}
+/* --- lecture analytique des séries (règles simples, aucun chiffre inventé) --- */
+function histInsights(H){const G=H.rows.map(r=>r.fmt.Groupe||{}),L=H.rows.length;if(L<2)return [];const out=[];const last=G[L-1],prev=G[L-2];
+  const take=k=>G.map(g=>g[k]).filter(v=>v!=null);
+  const db=take('poids_db');if(db.length>1){const w=Math.min(8,db.length-1),d=db[db.length-1]-db[db.length-1-w];out.push(['Poids Débit encartés',`${pct(last.poids_db,1)} sur la dernière période, ${d>=0?'en hausse':'en baisse'} de ${pts(Math.abs(d))} sur les ${w} dernières périodes.`,d>=0?'ok':'vig']);}
+  const gap=G.map((g,i)=>g.obj_db!=null&&g.poids_db!=null?{i,v:g.poids_db-g.obj_db}:null).filter(Boolean);
+  if(gap.length){const under=gap.filter(x=>x.v<0).length;out.push(['Objectif de poids Débit',`${under} période${under>1?'s':''} sur ${gap.length} sous l’objectif ; écart actuel ${pts(gap[gap.length-1].v)}.`,gap[gap.length-1].v<0?'alert':'ok']);}
+  const ev=take('ev_ca_e'),evn=take('ev_ca_ne');if(ev.length){const best=G.reduce((b,g,i)=>g.ev_ca_e!=null&&(b<0||g.ev_ca_e>G[b].ev_ca_e)?i:b,-1),worst=G.reduce((b,g,i)=>g.ev_ca_e!=null&&(b<0||g.ev_ca_e<G[b].ev_ca_e)?i:b,-1);
+    const ahead=G.filter(g=>g.ev_ca_e!=null&&g.ev_ca_ne!=null&&g.ev_ca_e>g.ev_ca_ne).length;
+    out.push(['CA des encartés vs N-1',`Meilleure période : ${H.rows[best].label} (${evo(G[best].ev_ca_e)}) ; plus faible : ${H.rows[worst].label} (${evo(G[worst].ev_ca_e)}). Les encartés font mieux que les non-encartés sur ${ahead} période${ahead>1?'s':''} sur ${ev.length}.`,'opp']);}
+  const fq=H.rows.map(r=>r.ev_freq).filter(v=>v!=null),pa=H.rows.map(r=>r.ev_panier).filter(v=>v!=null);
+  if(fq.length&&pa.length){const fpos=fq.filter(v=>v>0).length,pneg=pa.filter(v=>v<0).length;out.push(['Équation commerciale',`Fréquence en hausse vs N-1 sur ${fpos}/${fq.length} périodes, panier en baisse sur ${pneg}/${pa.length}.`,pneg>pa.length/2?'vig':'ok']);}
+  return out;}
+/* --- graphiques --- */
+const HPAL=['var(--accent)','#0F766E','#B4530A','#6D28D9','#A16207'];
+function hLine(rows,series,o={}){
+  const W=760,H=o.h||240,l=56,r=128,t=18,b=34,L=rows.length;if(!L)return '';
+  const vals=series.flatMap(s=>rows.map(s.get)).filter(v=>v!=null&&isFinite(v));if(!vals.length)return '<p class="src">Pas de données pour ce périmètre.</p>';
+  let lo=Math.min(...vals),hi=Math.max(...vals);if(o.zero){lo=Math.min(lo,0);hi=Math.max(hi,0);}const pad=(hi-lo)*.12||Math.abs(hi)*.05||1;lo-=pad;hi+=pad;
+  const x=i=>l+(W-l-r)*i/Math.max(L-1,1),y=v=>t+(H-t-b)*(hi-v)/(hi-lo),fm=o.fmt||(v=>nf(v,1));let s=SV(W,H);
+  [hi-pad,(hi+lo)/2,lo+pad].forEach(g=>{s+=`<line x1="${l}" x2="${W-r}" y1="${y(g)}" y2="${y(g)}" stroke="var(--line)" stroke-dasharray="3 4"/>`+T(l-8,y(g)+4,fm(g),{a:'end',fs:11});});
+  if(o.zero&&lo<0&&hi>0)s+=`<line x1="${l}" x2="${W-r}" y1="${y(0)}" y2="${y(0)}" stroke="var(--muted)"/>`;
+  const step=Math.max(1,Math.ceil(L/8));rows.forEach((rw,i)=>{if((i%step===0&&L-1-i>=step/2+.5)||i===L-1)s+=T(x(i),H-12,rw.label.replace(/^C(AD|AM) /,''),{a:'middle',fs:10.5});});
+  const labs=[];series.forEach((se,k)=>{const pts=rows.map((rw,i)=>{const v=se.get(rw);return v==null||!isFinite(v)?null:[x(i),y(v)];});let d='',pen=false;pts.forEach(p=>{if(!p){pen=false;return;}d+=(pen?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1);pen=true;});
+    const c=se.color||HPAL[k%HPAL.length];s+=`<path d="${d}" fill="none" stroke="${c}" stroke-width="${se.w||2.2}" ${se.dash?'stroke-dasharray="5 4"':''} stroke-linejoin="round" stroke-linecap="round"/>`;
+    const lp=[...pts].reverse().find(Boolean);if(lp){s+=`<circle cx="${lp[0]}" cy="${lp[1]}" r="3.5" fill="${c}"/>`;labs.push({x:lp[0]+8,y:lp[1]+4,t:`${se.name} ${fm(se.get(rows[pts.lastIndexOf(lp)]))}`,c});}});
+  labs.sort((a,b)=>a.y-b.y);labs.forEach((q,i)=>{if(i&&q.y-labs[i-1].y<13)q.y=labs[i-1].y+13;s+=T(q.x,q.y,q.t,{fs:11,fw:600,fill:q.c});});
+  return s+'</svg>';}
+const hpct=v=>nf(v*100,1)+NB+'%',hev=v=>(v>0?'+':v<0?'−':'')+nf(Math.abs(v*100),1)+NB+'%';
+function renderHist(){const el=$('#v-hist');if(!el)return;
+  if(!RAW){el.innerHTML=`<div class="crumb">Historique</div><h1 class="h1">Toutes les périodes</h1><p class="byline">${MODE==='real'?'Chargement des tables sources…':'Disponible une fois Pulse connecté à Tableau Cloud.'}</p>`;return;}
+  const H=HIST=buildHist(),R=H.rows,G=r=>r.fmt.Groupe||{};const fmts=['Hyper','Market','Proxi','E-commerce'];
+  const ins=histInsights(H);
+  const panel=(t,sub,svg)=>`<div class="panel" style="margin-top:16px"><h3 style="font-size:15px;margin:0 0 2px">${t}</h3><p class="src" style="margin:0 0 8px">${sub}</p><div class="chart">${svg}</div></div>`;
+  const tbl=`<div class="panel" style="margin-top:16px"><h3 style="font-size:15px;margin:0 0 8px">Toutes les périodes · Groupe</h3><div class="tbl" style="max-height:420px;overflow:auto"><table class="t"><thead><tr><th>Période</th><th class="r">Poids Débit</th><th class="r">vs N-1</th><th class="r">vs obj.</th><th class="r">Poids CA</th><th class="r">CA encartés</th><th class="r">Évol. CA enc.</th><th class="r">Évol. CA non enc.</th><th class="r">Clients</th><th class="r">Fréq.</th><th class="r">Panier</th></tr></thead><tbody>${[...R].reverse().map(r=>{const g=G(r),q=r.q||{};return `<tr><td>${esc(r.label)}</td><td class="r">${g.poids_db!=null?hpct(g.poids_db):'—'}</td><td class="r">${g.poids_db!=null&&g.poids_db_n1!=null?pts(g.poids_db-g.poids_db_n1):'—'}</td><td class="r">${g.obj_db!=null?pts(g.poids_db-g.obj_db):'—'}</td><td class="r">${g.poids_ca!=null?hpct(g.poids_ca):'—'}</td><td class="r">${g.ca_e!=null?meur(g.ca_e):'—'}</td><td class="r">${g.ev_ca_e!=null?hev(g.ev_ca_e):'—'}</td><td class="r">${g.ev_ca_ne!=null?hev(g.ev_ca_ne):'—'}</td><td class="r">${q.clients_e?cnt(q.clients_e):'—'}</td><td class="r">${r.ev_freq!=null?hev(r.ev_freq):'—'}</td><td class="r">${r.ev_panier!=null?hev(r.ev_panier):'—'}</td></tr>`;}).join('')}</tbody></table></div></div>`;
+  el.innerHTML=`<div class="crumb">Historique</div><h1 class="h1" style="max-width:none">Toutes les périodes · ${esc(F_LBL())}</h1>
+    <p class="byline">${R.length} périodes · ${esc(H.scope)} · calculé depuis les tables sources du dashboard Programme Club (Encartage_Groupe, EQC)</p>
+    ${ins.length?`<div class="axes" style="margin-top:14px">${ins.map(([t,x,c])=>`<div class="dom" style="cursor:default"><b><span class="dot ${c}"></span>${t}</b><span>${x}</span></div>`).join('')}</div>`:''}
+    ${panel('Poids du Débit des encartés','Groupe · N, N-1 et objectif',hLine(R,[{name:'N',get:r=>G(r).poids_db},{name:'N-1',get:r=>G(r).poids_db_n1,dash:1,color:'var(--muted)',w:1.6},{name:'Objectif',get:r=>G(r).obj_db,dash:1,color:'#B4530A',w:1.6}],{fmt:hpct}))}
+    ${panel('Poids du CA des encartés','Groupe · N, N-1 et objectif',hLine(R,[{name:'N',get:r=>G(r).poids_ca},{name:'N-1',get:r=>G(r).poids_ca_n1,dash:1,color:'var(--muted)',w:1.6},{name:'Objectif',get:r=>G(r).obj_ca,dash:1,color:'#B4530A',w:1.6}],{fmt:hpct}))}
+    ${panel('Évolution du CA vs N-1','Encartés vs non encartés · Groupe',hLine(R,[{name:'Encartés',get:r=>G(r).ev_ca_e},{name:'Non enc.',get:r=>G(r).ev_ca_ne,color:'var(--muted)'}],{fmt:hev,zero:1}))}
+    ${panel('Poids du Débit des encartés par format','N, par format',hLine(R,fmts.map(f=>({name:f,get:r=>(r.fmt[f]||{}).poids_db})),{fmt:hpct}))}
+    ${panel('Équation commerciale des encartés vs N-1',`Enseigne ${esc(FILT.eqc)} · clients, fréquence, panier`,hLine(R,[{name:'Clients',get:r=>r.ev_clients},{name:'Fréquence',get:r=>r.ev_freq},{name:'Panier',get:r=>r.ev_panier}],{fmt:hev,zero:1}))}
+    ${tbl}`;}
+const F_LBL=()=>({Hebdo:'hebdomadaire',Mensuel:'mensuel',CAD:'cumul annuel (CAD)',CAM:'cumul mobile (CAM)'})[FILT.tempo];
+async function loadHistory(worksheets){try{RAW=await loadRaw(worksheets);}catch(e){console.warn('[Pulse] historique',e);RAW=null;}renderHist();}
+
+/* ===================== DÉMARRAGE : aucune donnée embarquée, tout est lu dans Tableau Cloud ===================== */
+setMode('wait',window.self===window.top?'Hors Tableau Cloud':'Connexion à Tableau Cloud…');
 
 /* ===================== BRANCHEMENT TABLEAU : lecture des feuilles du dashboard Programme Club =====================
    Les chiffres sont ceux calculés par Tableau. Rien ne quitte le navigateur. */
@@ -1042,36 +1089,23 @@ const TB_HOST='https://dub01.online.tableau.com',TB_WB='/t/france/views/Programm
 const TB_PAGES={groupe:'EncartageGroupe',format:'EncartageFormat',eqc:'EQC',segment:'FocussegmentEQC',solde:'Soldedactifs',recrutement:'Recrutement',valeur:'ValeurClients',omni:'Omnicanalit'};
 let SRC=null;
 function vizBox(){let b=document.getElementById('tbsrc');if(!b){b=document.createElement('div');b.id='tbsrc';b.setAttribute('aria-hidden','true');document.body.appendChild(b);}
-  b.style.cssText='position:fixed;left:-12000px;top:0;width:1300px;height:900px;overflow:hidden;opacity:0;pointer-events:none';return b;}
-function loginPanel(on){let p=document.getElementById('tblogin');
-  if(!on){if(p)p.remove();vizBox();return;}
-  if(!p){p=document.createElement('div');p.id='tblogin';p.style.cssText='position:fixed;inset:0;z-index:300;background:rgba(14,23,38,.55);display:flex;align-items:center;justify-content:center;padding:16px';
-    p.innerHTML='<div style="background:#fff;border-radius:16px;max-width:560px;width:100%;padding:22px 24px;font-family:Manrope,system-ui,sans-serif;box-shadow:0 24px 60px rgba(0,0,0,.3)"><div style="font-size:12px;font-weight:700;letter-spacing:.08em;color:#2346d8;text-transform:uppercase">Pulse · Programme Club</div><h2 style="margin:6px 0 8px;font-size:20px;color:#0e1726">Connexion à Tableau Cloud</h2><p style="margin:0 0 14px;color:#4a5568;font-size:14px;line-height:1.5">Pour lire les vrais chiffres du dashboard Programme Club, clique une fois sur <b>« Connexion à Tableau Cloud »</b> ci-dessous. La fenêtre qui s’ouvre se referme seule, puis Pulse charge les données.</p><div id="tbloginslot" style="height:150px;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;position:relative"></div></div>';
-    document.body.appendChild(p);}
-  const b=vizBox();b.style.cssText='position:fixed;z-index:301;overflow:hidden;opacity:1;pointer-events:auto;background:#fff;border-radius:10px';
-  const r=document.getElementById('tbloginslot').getBoundingClientRect();Object.assign(b.style,{left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px'});}
+  b.style.cssText='position:fixed;left:0;top:0;width:1300px;height:900px;overflow:hidden;opacity:0;pointer-events:none;z-index:-1';return b;}
 function addViz(k,timeoutMs){return new Promise((ok,ko)=>{const v=document.createElement('tableau-viz');
-  v.setAttribute('src',TB_HOST+TB_WB+TB_PAGES[k]);v.setAttribute('toolbar','hidden');v.setAttribute('hide-tabs','');v.setAttribute('width','1280');v.setAttribute('height','880');
+  v.setAttribute('src',TB_HOST+TB_WB+TB_PAGES[k]);v.setAttribute('toolbar','hidden');v.setAttribute('hide-tabs','');v.setAttribute('width','1280');v.setAttribute('height','880');v.style.cssText='position:absolute;left:0;top:0';
   const t=timeoutMs?setTimeout(()=>ko({timeout:true,v}),timeoutMs):null;
   v.addEventListener('firstinteractive',()=>{if(t)clearTimeout(t);ok(v);});
   v.addEventListener('vizloaderror',e=>{if(t)clearTimeout(t);ko({user:'Programme Club inaccessible : vérifie tes droits sur le classeur',e});});
   vizBox().appendChild(v);});}
 async function embedSource(){
   await import(TB_HOST+'/javascripts/api/tableau.embedding.3.latest.min.js');
-  const V={},keys=Object.keys(TB_PAGES),first=keys[0];
-  // 1) première page : si Tableau demande une connexion, on affiche son bouton à l'utilisateur
-  let p=addViz(first,0),done=false;p.then(()=>{done=true;});
-  await Promise.race([p,new Promise(r=>setTimeout(r,15000))]);
-  if(!done){loginPanel(true);setMode('err','Connexion à Tableau Cloud requise');}
-  V[first]=await Promise.race([p,new Promise((_,ko)=>setTimeout(()=>ko({user:'Connexion à Tableau Cloud non effectuée'}),300000))]);
-  loginPanel(false);
-  // 2) les 7 autres pages, en arrière-plan
-  let n=1;setMode('err',`Chargement du dashboard Programme Club ${n}/${keys.length}…`);
-  await Promise.all(keys.slice(1).map(k=>addViz(k,180000).then(v=>{V[k]=v;n++;setMode('err',`Chargement du dashboard Programme Club ${n}/${keys.length}…`);})
-    .catch(e=>{throw e&&e.timeout?{user:'Une page du dashboard Programme Club ne répond pas'}:e;})));
+  const V={},keys=Object.keys(TB_PAGES);let n=0;
+  setMode('err',`Chargement des données Programme Club 0/${keys.length}…`);
+  // les 8 pages s'ouvrent en parallèle, invisibles ; aucune fenêtre n'est affichée
+  await Promise.all(keys.map(k=>addViz(k,60000).then(v=>{V[k]=v;n++;setMode('err',`Chargement des données Programme Club ${n}/${keys.length}…`);})
+    .catch(e=>{throw e&&e.timeout?{user:'Session Tableau non transmise à Pulse',cookie:true}:e;})));
   const sheetViz={};Object.entries(NEED).forEach(([k,list])=>list.forEach(nm=>{if(!sheetViz[nm.trim()])sheetViz[nm.trim()]=k;}));
   const getWS=nm=>{const v=V[sheetViz[nm]];const w=v&&v.workbook.activeSheet.worksheets.find(w=>w.name.trim()===nm);if(!w)throw {user:'Feuille introuvable dans Programme Club : '+nm};return w;};
-  const wrap=nm=>({name:nm,getSummaryDataReaderAsync:(...a)=>getWS(nm).getSummaryDataReaderAsync(...a),getFiltersAsync:()=>getWS(nm).getFiltersAsync(),applyFilterAsync:(...a)=>getWS(nm).applyFilterAsync(...a)});
+  const wrap=nm=>({name:nm,getDataSourcesAsync:()=>getWS(nm).getDataSourcesAsync(),getSummaryDataReaderAsync:(...a)=>getWS(nm).getSummaryDataReaderAsync(...a),getFiltersAsync:()=>getWS(nm).getFiltersAsync(),applyFilterAsync:(...a)=>getWS(nm).applyFilterAsync(...a)});
   // un paramètre = le même dans les 8 sessions : on le change partout
   const params=async()=>{const all={};for(const v of Object.values(V)){(await v.workbook.getParametersAsync()).forEach(q=>{const nm=q.name.trim();(all[nm]=all[nm]||[]).push(q);});}
     return Object.entries(all).map(([nm,l])=>({name:nm,currentValue:l[0].currentValue,allowableValues:l[0].allowableValues,changeValueAsync:v=>Promise.all(l.map(q=>q.changeValueAsync(v)))}));};
@@ -1088,9 +1122,10 @@ async function connectTableau(){
     if(ALL_SHEETS.every(n=>names.has(n.trim())))SRC=d;
     else{setMode('err','Connexion au dashboard Programme Club…');SRC=await embedSource();}
     setMode('err','Lecture des données Tableau…');
-    await loadParams();initFiltFromTableau();renderGbar();
+    await loadParams();initFiltFromTableau();
     await refreshTableau();
-  }catch(e){setMode('err',(e&&e.user)||'Lecture Tableau impossible · données fictives');console.warn('[Pulse]',e);loginPanel(false);}
+    loadHistory(SRC.worksheets);
+  }catch(e){setMode('err',(e&&e.user)||'Lecture Tableau impossible');console.warn('[Pulse]',e);if(!M)splash(e&&e.cookie);}
 }
 connectTableau();
 
