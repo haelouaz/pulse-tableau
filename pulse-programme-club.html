@@ -380,17 +380,17 @@ const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'
 const icon=(n,s=16)=>`<svg class="ico" style="width:${s}px;height:${s}px"><use href="#i-${n}"/></svg>`;
 
 /* ===================== FORMATAGE ===================== */
-const nf=(v,d)=>Number(v).toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const nf=(v,d)=>v==null||!isFinite(v)?'—':Number(v).toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
 const S=v=>v>0?'+':v<0?'−':'';
 const NB='\u00a0';
 const pct=(r,d=2)=>r==null?'—':nf(r*100,d)+NB+'%';                 // ratio -> "12,34 %"
 const evo=(r,d=1)=>r==null||!isFinite(r)?'—':S(r)+nf(Math.abs(r*100),d)+NB+'%'; // ratio -> "+5,6 %"
 const pts=(r,d=1)=>r==null||!isFinite(r)?'—':S(r)+nf(Math.abs(r*100),d)+NB+'pt';  // écart de ratio -> "+0,7 pt"
-const meur=(v)=>{const m=v/1e6;return nf(m,Math.abs(m)>=100?0:1)+NB+'M€';};
-const dmeur=(v)=>S(v)+meur(Math.abs(v));
-const cnt=(v)=>Math.abs(v)>=1e6?nf(v/1e6,2)+' M':Math.abs(v)>=1e3?nf(v/1e3,1)+' K':nf(v,0);
+const meur=(v)=>{if(v==null||!isFinite(v))return '—';const m=v/1e6;return nf(m,Math.abs(m)>=100?0:1)+NB+'M€';};
+const dmeur=(v)=>v==null||!isFinite(v)?'—':S(v)+meur(Math.abs(v));
+const cnt=(v)=>v==null||!isFinite(v)?'—':Math.abs(v)>=1e6?nf(v/1e6,2)+' M':Math.abs(v)>=1e3?nf(v/1e3,1)+' K':nf(v,0);
 const vol=(v)=>Math.abs(v)>=1e6?nf(v/1e6,1)+' M':cnt(v);
-const eur=(v,d=2)=>nf(v,d)+NB+'€';
+const eur=(v,d=2)=>v==null||!isFinite(v)?'—':nf(v,d)+NB+'€';
 const dec=(v,d=1)=>nf(v,d);
 const cls=r=>r>0?'up':r<0?'down':'';
 const pill=(r,kind='evo')=>`<span class="pill ${cls(r)}">${kind==='pts'?pts(r):evo(r)}</span>`;
@@ -849,7 +849,9 @@ let PAR=null;const DONE={};
 const avs=p=>((p&&p.allowableValues&&p.allowableValues.allowableValues)||[]);
 async function loadParams(){const ps=await SRC.getParametersAsync();PAR={};ps.forEach(p=>{PAR[p.name.trim()]=p;DONE[p.name.trim()]=String(p.currentValue&&p.currentValue.value);});}
 async function setPv(name,hit){const p=PAR[name];if(!p||!hit)return;if(DONE[name]===String(hit.value))return;
-  try{await p.changeValueAsync(hit.value);}catch(e){try{await p.changeValueAsync(hit.formattedValue);}catch(e2){console.warn('[Pulse] paramètre',name,e2);return;}}DONE[name]=String(hit.value);}
+  try{await p.changeValueAsync(typedVal(p,hit.value));}catch(e){console.warn('[Pulse] paramètre',name,e);return;}DONE[name]=String(hit.value);}
+// Tableau attend une valeur du type du paramètre (entier, texte…) : une chaîne sur un paramètre entier déclenche une erreur
+function typedVal(p,v){const t=String(p&&p.dataType||'').toLowerCase();if(/int|float|real|number/.test(t)){const n=Number(v);return isFinite(n)?n:v;}if(/bool/.test(t))return v===true||String(v)==='true';return v==null?v:String(v);}
 const setP=(name,pred)=>setPv(name,avs(PAR[name]).find(x=>pred(nrm(x.formattedValue??x.value))));
 const setPi=(name,i)=>setPv(name,avs(PAR[name])[i]);
 const fmtRe={Groupe:/groupe/,Hyper:/hyper/,Market:/market/,Proxi:/proxi/,'E-commerce':/e-?com/};
@@ -886,7 +888,7 @@ async function applyFilt(){const F=FILT,ti=['Hebdo','Mensuel','CAD','CAM'].index
   const ncP={Exclu:v=>/exclu/.test(v),Inclus:v=>/inclu/.test(v),'New Carrefour':v=>/new/.test(v)}[F.nc],stP=v=>v===nrm(F.stat);
   for(const n of ALL_SHEETS){const ws=byName[n];if(!ws)continue;await setFilter(ws,/flag.?cora/i,ncP);await setFilter(ws,/statut_desc/i,stP);}
   for(const n of ['EQC E','EQC Débit E','Waterfall EQC'])if(byName[n])await setFilter(byName[n],/^flag clients$/i,v=>v===nrm(pass?'PASS':'Encarté'));}
-async function refreshTableau(){if(!PAR||BUSY)return;BUSY=true;loadPeriods();renderGbar();
+async function refreshTableau(){if(TB){refreshTables();return;}if(!PAR||BUSY)return;BUSY=true;loadPeriods();renderGbar();
   try{await applyFilt();ctxLabels();const rows=await readTableau();M=buildModel(rows);setMode('real');}
   catch(e){setMode('err',(e&&e.user)||'Lecture Tableau impossible pour ce filtre');console.warn('[Pulse]',e);}
   BUSY=false;renderAll();}
@@ -914,7 +916,7 @@ async function loadRaw(worksheets){
   return {EG,EQ};}
 const TEMPO_RAW={Hebdo:'S',Mensuel:'M',CAD:'CAD S',CAM:'CAM S'},CORA_RAW={Exclu:'0',Inclus:'1','New Carrefour':'2'};
 const ENS_RAW={Groupe:'Groupe',Hyper:'1- HYPER',Market:'2- MARKET',Proxi:'3- PROXI','E-commerce':'E-com'};
-function buildHist(){
+function buildHist(){if(TB)return histFromTables();
   if(!RAW)return null;const F=FILT,tp=TEMPO_RAW[F.tempo],cora=CORA_RAW[F.nc],st=F.stat,enc=F.enc==='PASS'?'PASS':'Encarté';
   const ok=r=>r.Temporalite===tp&&String(r['Flag cora'])===cora&&r.statut_desc===st;
   const per={};const P=id=>(per[id]=per[id]||{id,key:perKey(id),f:{}});
@@ -1012,11 +1014,12 @@ async function readTableau(){
   if(missing.length)throw {user:`Feuilles manquantes dans le dashboard : ${missing.slice(0,4).join(', ')}${missing.length>4?` (+${missing.length-4})`:''}`};
   const S={};const rd=async n=>{S[n]=await readWS(byName[n.trim()]);};
   let param=null,orig=null;try{param=await dash.findParameterAsync('CA/Débit');orig=param&&param.currentValue.value;}catch(e){}
+  let curMes=orig;
   const R=[],a=(b,d,m,v,o)=>{if(v!=null&&isFinite(v))R.push([b,d,m,Number(v),o==null?null:o]);};
   const order={Groupe:1,Hyper:2,Market:3,Proxi:4,'E-commerce':5};
   // --- passe CA puis passe Débit sur les feuilles Encartage Groupe
   for(const mes of ['CA','Débit']){
-    if(param){try{await param.changeValueAsync(mes);}catch(e){try{await param.changeValueAsync(mes==='CA'?'1':'2');}catch(e2){}}}
+    if(param){const hv=((param.allowableValues&&param.allowableValues.allowableValues)||[]).find(x=>nrm(x.formattedValue)===nrm(mes));if(hv&&String(curMes)!==String(hv.value)){try{await param.changeValueAsync(typedVal(param,hv.value));curMes=hv.value;}catch(e){console.warn('[Pulse] CA/Débit',e);}}}
     for(const n of NEED.groupe)await rd(n);
     const L=S['EG_ligne CA'],P=S['EG_ligne_poids_ecart'],E=S['Tableau evol (4)'],G=S['EG_graphique_ecart G (2)'];
     const key=mes==='CA'?'ca':'debit';
@@ -1028,7 +1031,7 @@ async function readTableau(){
       const m=/(\d{4}).*?S-?(\d+)/.exec(o.w);if(m&&f==='Groupe'&&mes==='Débit'){a('meta','','annee',+m[1]);a('meta','','semaine',+m[2]);}});
     E.rows.forEach(r=>{const f=fmtName(E.get(r,'enseigne (effet_encartage)','enseigne'));const ef=E.num(r,'effet format'),em=E.num(r,'effet mix');if(ef!=null)a('format',f,`effet_format_${key}`,ef,order[f]);if(em!=null)a('format',f,`effet_mix_${key}`,em,order[f]);});
   }
-  if(param&&orig!=null){try{await param.changeValueAsync(orig);}catch(e){}}
+  if(param&&orig!=null&&String(curMes)!==String(orig)){try{await param.changeValueAsync(typedVal(param,orig));}catch(e){}}
   for(const n of ALL_SHEETS.filter(n=>!NEED.groupe.includes(n)))await rd(n);
   a('meta',FILT.focus||'Hyper','format_focus',1);
   // --- Équation commerciale
@@ -1108,8 +1111,96 @@ async function embedSource(){
   const wrap=nm=>({name:nm,getDataSourcesAsync:()=>getWS(nm).getDataSourcesAsync(),getSummaryDataReaderAsync:(...a)=>getWS(nm).getSummaryDataReaderAsync(...a),getFiltersAsync:()=>getWS(nm).getFiltersAsync(),applyFilterAsync:(...a)=>getWS(nm).applyFilterAsync(...a)});
   // un paramètre = le même dans les 8 sessions : on le change partout
   const params=async()=>{const all={};for(const v of Object.values(V)){(await v.workbook.getParametersAsync()).forEach(q=>{const nm=q.name.trim();(all[nm]=all[nm]||[]).push(q);});}
-    return Object.entries(all).map(([nm,l])=>({name:nm,currentValue:l[0].currentValue,allowableValues:l[0].allowableValues,changeValueAsync:v=>Promise.all(l.map(q=>q.changeValueAsync(v)))}));};
+    return Object.entries(all).map(([nm,l])=>({name:nm,dataType:l[0].dataType,currentValue:l[0].currentValue,allowableValues:l[0].allowableValues,changeValueAsync:v=>Promise.all(l.map(q=>q.changeValueAsync(v)))}));};
   return {worksheets:Object.keys(sheetViz).map(wrap),getParametersAsync:params,findParameterAsync:async nm=>(await params()).find(q=>q.name===nm)};}
+/* ===================== MODE TABLES PULSE (BigQuery Tableau_Marketing) =====================
+   Le dashboard contient 3 petites feuilles (pulse_periode, pulse_territoire, pulse_clients), une par table :
+   Pulse lit chaque table en entier une seule fois, puis tous les filtres se recalculent dans le navigateur,
+   sans aucun recalcul Tableau. */
+const TB_SHEETS={periode:'pulse_periode',territoire:'pulse_territoire',clients:'pulse_clients'};
+let TB=null;
+async function readFullTable(ws){
+  const ds=(await ws.getDataSourcesAsync())[0];if(!ds)throw {user:'Source introuvable pour la feuille '+ws.name};
+  const lt=(await ds.getLogicalTablesAsync())[0];
+  const r=await ds.getLogicalTableDataReaderAsync(lt.id,10000);const out=[];let names=null;
+  for(let i=0;i<r.pageCount;i++){const p=await r.getPageAsync(i);names=names||p.columns.map(c=>String(c.fieldName).replace(/\s+/g,'_').toLowerCase());
+    p.data.forEach(row=>{const o={};names.forEach((n,j)=>{const c=row[j];let v=c==null?null:(c.nativeValue!==undefined?c.nativeValue:c.value);if(v==='%null%'||v==='')v=null;o[n]=v;});out.push(o);});}
+  await r.releaseAsync();return out;}
+async function loadTables(dash){
+  const by={};dash.worksheets.forEach(w=>{by[w.name.trim()]=w;});
+  const keys=Object.keys(TB_SHEETS),miss=keys.filter(k=>!by[TB_SHEETS[k]]);if(miss.length)throw {user:'Feuilles Pulse manquantes : '+miss.map(k=>TB_SHEETS[k]).join(', ')};
+  const res=await Promise.all(keys.map(k=>readFullTable(by[TB_SHEETS[k]])));const T={};keys.forEach((k,i)=>T[k]=res[i]);
+  T.periode.forEach(r=>{r._key=perKey(r.identifiant);r.flag_cora=r.flag_cora==null?null:Number(r.flag_cora);});
+  T.territoire.forEach(r=>{r.flag_cora=r.flag_cora==null?null:Number(r.flag_cora);});
+  T.clients.forEach(r=>{r._key=perKey(r.identifiant);r.flag_cora=r.flag_cora==null?null:Number(r.flag_cora);});
+  return T;}
+const T_TEMPO={Hebdo:'S',Mensuel:'M',CAD:'CAD S',CAM:'CAM S'},T_CORA={Exclu:0,Inclus:1,'New Carrefour':2};
+const T_AXE={'Direction Territoriale':'DT','Direction Régionale':'DR','Mode d’exploitation':'MODE_EXPLOITATION','Direction Opération':'DIRECTION_OPERATION'};
+const T_BAL={'3 derniers mois':'3 derniers mois','6 derniers mois':'6 derniers mois',CAM:'CAM',CAD:'CAD S'};
+const T_FMT=['Groupe','Hyper','Market','Proxi','E-commerce'];
+function tPeriods(){const tp=T_TEMPO[FILT.tempo],keys=new Set();TB.periode.forEach(r=>{if(r.temporalite===tp&&r._key)keys.add(r._key);});
+  PERIODS=[...keys].sort().reverse().map(k=>({v:k,l:perLab(k,FILT.tempo)}));if(!PERIODS.some(p=>p.v===FILT.per))FILT.per=PERIODS.length?PERIODS[0].v:'';}
+const tBase=r=>r.temporalite===T_TEMPO[FILT.tempo]&&r.flag_cora===T_CORA[FILT.nc]&&r.statut_desc===FILT.stat;
+function rowsFromTables(){
+  const R=[],a=(b,d,m,v,o)=>{if(v!=null&&isFinite(v))R.push([b,d,m,Number(v),o==null?null:o]);};const ord={Groupe:1,Hyper:2,Market:3,Proxi:4,'E-commerce':5};
+  const enc=FILT.enc==='PASS'?'PASS':'Encarté',key=FILT.per,focus=FILT.focus,eqcE=FILT.eqc;
+  const P=TB.periode.filter(r=>tBase(r)&&r.type_encartage===enc);const cur=P.filter(r=>r._key===key);
+  // --- encartage par format
+  cur.forEach(r=>{const f=r.enseigne,o=ord[f];if(!o)return;
+    [['ca_e','ca_e_n'],['ca_e_n1','ca_e_n1'],['ca_ne','ca_ne_n'],['ca_ne_n1','ca_ne_n1'],['debit_e','debit_e_n'],['debit_e_n1','debit_e_n1'],['debit_ne','debit_ne_n'],['debit_ne_n1','debit_ne_n1'],
+     ['poids_ca','poids_ca'],['poids_ca_n1','poids_ca_n1'],['poids_ca_obj','poids_ca_obj'],['poids_debit','poids_debit'],['poids_debit_n1','poids_debit_n1'],['poids_debit_obj','poids_debit_obj'],
+     ['effet_format_ca','effet_format_ca'],['effet_mix_ca','effet_mix_ca'],['effet_format_debit','effet_format_debit'],['effet_mix_debit','effet_mix_debit'],['recrues','recrues_n'],['recrues_n1','recrues_n1']]
+     .forEach(([m,c])=>a('format',f,m,r[c],o));});
+  if(key){a('meta','','annee',+key.slice(0,4));if(key[4]==='S')a('meta','','semaine',+key.slice(5));}a('meta',focus,'format_focus',1);
+  // --- équation commerciale (enseigne choisie)
+  const q=cur.find(r=>r.enseigne===eqcE)||cur.find(r=>r.enseigne==='Groupe');
+  if(q){[['clients_e','clients'],['freq_e','freq'],['depense_e','depense'],['panier_e','panier'],['articles_e','articles'],['prix_e','prix'],['panier_ne','panier_ne'],['articles_ne','articles_ne'],['prix_ne','prix_ne']]
+      .forEach(([m,c])=>{a('kpi','',m,q[c+'_n']);a('kpi','',m+'_n1',q[c+'_n1']);});
+    a('kpi','','wf_e_n1',q.cascade_ca_n1);a('kpi','','wf_ne_n1',q.cascade_ne_ca_n1);
+    [['Clients',q.effet_clients,1],['Fréquence',q.effet_freq,2],['Prix',q.effet_prix,3],['Articles / panier',q.effet_articles,4],['Effets croisés',q.effet_croises,5]].forEach(([n,v,o])=>a('eqc_e',n,'effet',v,o));
+    [['Débit',q.effet_ne_debit,1],['Prix',q.effet_ne_prix,3],['Articles / panier',q.effet_ne_articles,4],['Effets croisés',q.effet_ne_croises,5]].forEach(([n,v,o])=>a('eqc_ne',n,'effet',v,o));}
+  // --- recrutement : série des 16 dernières périodes, format focus
+  P.filter(r=>r.enseigne===focus&&r._key&&r._key<=key).sort((x,y)=>x._key<y._key?-1:1).slice(-16).forEach(r=>a('rec_semaine',r._key[4]+(+r._key.slice(5)),'ecart_cumule',r.evol_recrues,+r._key.slice(0,4)*100+(+r._key.slice(5))));
+  // --- territoire (dernière période de la temporalité)
+  const Tt=TB.territoire.filter(r=>tBase(r)&&r.type_encartage===enc&&r.enseigne===focus);const ax=T_AXE[FILT.axe]||'DT';
+  Tt.filter(r=>r.axe===ax).forEach(r=>{const n=nice(r.valeur_axe);a('dt',n,'poids_debit',r.poids_debit);a('dt',n,'poids_debit_n1',r.poids_debit_n1);a('dt',n,'poids_debit_obj',r.poids_debit_obj);a('dt',n,'nb_mag',r.nb_magasins);a('dt',n,'recrues',r.recrues_n);a('dt',n,'recrues_n1',r.recrues_n1);});
+  Tt.filter(r=>r.axe==='REGION').forEach(r=>{const n=r.valeur_axe;a('region',n,'recrues',r.recrues_n);a('region',n,'recrues_n1',r.recrues_n1);if(r.poids_debit!=null&&r.poids_debit_n1!=null)a('region',n,'ecart_poids_debit',r.poids_debit-r.poids_debit_n1);});
+  Tt.filter(r=>r.axe==='MAGASIN').forEach(r=>{const n=r.valeur_axe;
+    if((r.rk_obj_top&&r.rk_obj_top<=20)||(r.rk_obj_flop&&r.rk_obj_flop<=20)){a('mag_poids',n,'poids_debit',r.poids_debit);a('mag_poids',n,'poids_debit_n1',r.poids_debit_n1);a('mag_poids',n,'poids_debit_obj',r.poids_debit_obj);}
+    if((r.rk_rec_top&&r.rk_rec_top<=20)||(r.rk_rec_flop&&r.rk_rec_flop<=20)){a('mag_rec',n,'recrues',r.recrues_n);a('mag_rec',n,'recrues_n1',r.recrues_n1);}});
+  // --- compléments clients
+  const C=TB.clients;
+  const seg=C.filter(r=>r.bloc==='SEGMENT'&&tBase(r)&&r.enseigne===eqcE&&r.type_encartage===enc&&nrm(r.segmentation)===nrm(FILT.segm));let so=0;
+  seg.forEach(r=>{const s=String(r.dimension||'');if(/^total/i.test(s)){a('kpi','','seg_ca',r.ca_n);a('kpi','','seg_ca_n1',r.ca_n1);a('kpi','','seg_clients',r.clients_n);a('kpi','','seg_depense',r.depense_n);a('kpi','','seg_panier',r.panier_n);return;}
+    const rank={hebdomadaires:1,'bi-mensuels':2,mensuels:3,'irréguliers':4}[s.toLowerCase()]||++so+4,nm=nice(s);
+    a('segment',nm,'ca',r.ca_n,rank);a('segment',nm,'ca_n1',r.ca_n1,rank);a('segment',nm,'clients',r.clients_n,rank);a('segment',nm,'effet_clients',r.effet_clients,rank);a('segment',nm,'effet_freq',r.effet_freq,rank);a('segment',nm,'effet_panier',r.effet_panier,rank);});
+  if(!seg.some(r=>/^total/i.test(String(r.dimension||'')))&&seg.length){const s=k=>seg.reduce((x,r)=>x+(r[k]||0),0);a('kpi','','seg_ca',s('ca_n'));a('kpi','','seg_ca_n1',s('ca_n1'));a('kpi','','seg_clients',s('clients_n'));}
+  const bt=T_BAL[FILT.bal]||'3 derniers mois',sol=C.filter(r=>r.bloc==='SOLDE'&&r.temporalite===bt&&r.flag_cora===T_CORA[FILT.nc]&&r.statut_desc===FILT.stat&&r.type_encartage===enc);
+  sol.forEach(r=>{const f=r.enseigne,t=String(r.dimension||'');if(t==='N')a('format',f,'foyers',r.foyers,ord[f]);if(t==='N-1')a('format',f,'foyers_n1',r.foyers,ord[f]);});
+  const sg=t=>sol.find(r=>r.enseigne==='Groupe'&&String(r.dimension)===t)||{};
+  a('kpi','','foyers_n',sg('N').foyers);a('kpi','','foyers_n1',sg('N-1').foyers);a('kpi','','foyers_gagnes',Math.abs(sg('Gagnés').foyers||0)||null);a('kpi','','foyers_perdus',Math.abs(sg('Perdus').foyers||0)||null);
+  const g=sg('Gagnés').focus_ca,p=sg('Perdus').focus_ca,c=sg('Constants').focus_ca,n1=sg('N-1').focus_ca??sg('N-1').ca_n1;
+  a('kpi','','ca_solde_n1',n1);a('kpi','','ca_gagnes',g);a('kpi','','ca_perdus',p);a('kpi','','ca_constants',c);if(n1!=null)a('kpi','','ca_solde_n',n1+(g||0)+(c||0)+(p||0));
+  const cs=sg('Constants');[['ca','ca'],['depense','depense'],['freq','freq'],['panier','panier']].forEach(([k,col])=>{a('kpi','','cst_'+k+'_n',cs[col+'_n']);a('kpi','','cst_'+k+'_n1',cs[col+'_n1']);});
+  const NM={'pass':'Clients Pass','membre club':'Membres Club','membres club':'Membres Club','inscrits communauté':'Membres Communauté','inscrits avantages':'Avantages activés','app user':'Utilisateurs App'};
+  const val=C.filter(r=>r.bloc==='VALEUR'&&r.flag_cora===T_CORA[FILT.nc]&&r.enseigne===eqcE);const vt=val.some(r=>r.temporalite===T_TEMPO[FILT.tempo])?T_TEMPO[FILT.tempo]:(val[0]||{}).temporalite;let vo=0;const seen=new Set();
+  val.filter(r=>r.temporalite===vt&&(r.statut_desc===FILT.stat||!val.some(x=>x.statut_desc===FILT.stat))).forEach(r=>{const raw=String(r.dimension||'');const n=NM[raw.toLowerCase()]||raw;if(!n||seen.has(n))return;seen.add(n);vo++;
+    a('activation',n,'clients',r.clients_n,vo);a('activation',n,'clients_n1',r.clients_n1,vo);a('activation',n,'depense',r.depense_n,vo);a('activation',n,'depense_n1',r.depense_n1,vo);a('activation',n,'reference',/club/i.test(n)&&/membre/i.test(n)?1:0,vo);});
+  const can=C.filter(r=>r.bloc==='CANAL'&&tBase(r));const corder={Application:1,'Carrefour.fr':2,Cartes:3};
+  [['Groupe','groupe'],[focus,'focus']].forEach(([e,sfx])=>{const rows=can.filter(r=>r.enseigne===e);const tn=rows.reduce((x,r)=>x+(r.clients_n||0),0),t1=rows.reduce((x,r)=>x+(r.clients_n1||0),0);
+    rows.forEach(r=>{a('canal',r.dimension,'part_'+sfx,tn?r.clients_n/tn:null,corder[r.dimension]);a('canal',r.dimension,'part_'+sfx+'_n1',t1?r.clients_n1/t1:null,corder[r.dimension]);});});
+  const mixAll=C.filter(r=>r.bloc==='MIXITE'),mixId=mixAll.map(r=>r.identifiant).sort().pop();const mord={'Mono format':1,'Multi Offline':2,'Multi Online':3,'Exclusif Online':4};
+  mixAll.filter(r=>r.identifiant===mixId).forEach(r=>{const n=r.dimension,y=String(r.dimension_2||'');if(y==='N'){a('mixite',n,'part',r.part,mord[n]);a('mixite',n,'foyers',r.foyers,mord[n]);}if(/^N-?1$/.test(y))a('mixite',n,'part_n1',r.part,mord[n]);});
+  const matAll=C.filter(r=>r.bloc==='MATRICE'),matId=matAll.map(r=>r.identifiant).sort().pop();matAll.filter(r=>r.identifiant===matId).forEach(r=>a('matrice',r.dimension+'>'+r.dimension_2,'part',r.part));
+  return R;}
+// Historique depuis pulse_pc_periode (même forme que buildHist)
+function histFromTables(){const enc=FILT.enc==='PASS'?'PASS':'Encarté';const per={};
+  TB.periode.filter(r=>tBase(r)&&r.type_encartage===enc&&r._key).forEach(r=>{const p=(per[r._key]=per[r._key]||{id:r.identifiant,key:r._key,label:perLab(r._key,FILT.tempo),fmt:{},q:{}});
+    p.fmt[r.enseigne]={poids_ca:r.poids_ca,poids_ca_n1:r.poids_ca_n1,poids_db:r.poids_debit,poids_db_n1:r.poids_debit_n1,obj_ca:r.poids_ca_obj,obj_db:r.poids_debit_obj,ev_ca_e:r.evol_ca_e,ev_ca_ne:r.evol_ca_ne,ev_db_e:r.evol_debit_e,ca_e:r.ca_e_n,db_e:r.debit_e_n};
+    if(r.enseigne===FILT.eqc){p.q={clients_e:r.clients_n,clients_e_n1:r.clients_n1};['clients','freq','panier','depense','prix','articles'].forEach(k=>{p['ev_'+k]=r[k+'_n1']?r[k+'_n']/r[k+'_n1']-1:null;});}});
+  const rows=Object.values(per).sort((a,b)=>a.key<b.key?-1:1);return {rows,tempo:FILT.tempo,scope:M&&M.scope||'',n:rows.length};}
+async function refreshTables(){if(!TB)return;tPeriods();ctxLabels();M=buildModel(rowsFromTables());setMode('real');RAW=RAW||{tables:true};renderAll();}
+
 async function connectTableau(){
   if(window.self===window.top)return;
   if(!(window.tableau&&tableau.extensions)){setMode('err','API Extensions Tableau non chargée');return;}
@@ -1119,6 +1210,8 @@ async function connectTableau(){
     await Promise.race([TX.initializeAsync(),new Promise((_,ko)=>setTimeout(()=>ko({user:'Extension non initialisée par Tableau (URL autorisée ?)'}),30000))]);
     // si les feuilles sont posées dans le dashboard Pulse, on les lit directement ; sinon on ouvre le régalien en arrière-plan
     const d=TX.dashboardContent.dashboard,names=new Set(d.worksheets.map(w=>w.name.trim()));
+    // 1) mode tables Pulse : 3 feuilles, lecture unique, filtres instantanés
+    if(Object.values(TB_SHEETS).every(n=>names.has(n))){setMode('err','Lecture des tables Pulse…');TB=await loadTables(d);PAR={};await refreshTables();return;}
     if(ALL_SHEETS.every(n=>names.has(n.trim())))SRC=d;
     else{setMode('err','Connexion au dashboard Programme Club…');SRC=await embedSource();}
     setMode('err','Lecture des données Tableau…');
