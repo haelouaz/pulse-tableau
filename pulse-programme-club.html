@@ -299,6 +299,7 @@ table.t .r{text-align:right}
 .briefcard{box-shadow:0 10px 30px -14px rgba(35,72,201,.55)}
 .ptl{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--brief-muted);margin-right:8px}
 .axes.pil{grid-template-columns:repeat(5,minmax(0,1fr))}
+.axes.pil .dom{display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch}
 .axes.pil .pv{display:block;color:var(--ink);font-weight:600;font-size:13px;margin-top:2px}
 .decs{display:flex;flex-direction:column;gap:8px}
 .dec{display:grid;grid-template-columns:28px minmax(0,1fr);gap:12px;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:12px 14px}
@@ -713,21 +714,53 @@ function prioDT(){const P=A.P;if(!P.dt.length)return '';return `<div class="tbl"
 function trajChart(){const H=A.P.H;if(!H||!H.rows||H.rows.length<3)return '';const R=H.rows.slice(-16),G=r=>r.fmt.Groupe||{};
   return `<div class="chart">${hLine(R,[{name:'Poids Débit',get:r=>G(r).poids_db},{name:'Objectif',get:r=>G(r).obj_db,dash:1,color:'#B4530A',w:1.6},{name:'N-1',get:r=>G(r).poids_db_n1,dash:1,color:'var(--muted)',w:1.6}],{fmt:hpct,h:220})}</div>`;}
 
+/* ===================== PANORAMA : tout le périmètre (Groupe, 4 formats, toutes les DT et magasins, clients) ===================== */
+function panorama(){const O={fmt:[],terr:[],cli:{}};const {formats}=M;
+  O.fmt=formats.map(f=>({name:f.name,poids_ca:f.poids_ca,dca:f.poids_ca-f.poids_ca_n1,poids_db:f.poids_debit,gap:f.poids_debit_obj!=null?f.poids_debit-f.poids_debit_obj:null,ev_ca:f.ev_ca_e,ev_ne:f.ev_ca_ne,ev_rec:f.ev_rec,ca:f.ca_e}));
+  if(typeof TB!=='undefined'&&TB&&TB.territoire){const enc=FILT.enc==='PASS'?'PASS':'Encarté';
+    ['Hyper','Market','Proxi','E-commerce'].forEach(f=>{const all=TB.territoire.filter(r=>tBase(r)&&r.type_encartage===enc&&r.enseigne===f);
+      const dt=all.filter(r=>r.axe==='DT').map(r=>({n:nice(r.valeur_axe),gap:r.poids_debit_obj!=null&&r.poids_debit!=null?r.poids_debit-r.poids_debit_obj:null,ev:r.recrues_n1?r.recrues_n/r.recrues_n1-1:null}));
+      if(!dt.length)return;const g=dt.filter(x=>x.gap!=null);
+      const mag=all.filter(r=>r.axe==='MAGASIN'),mg=mag.filter(r=>r.poids_debit_obj!=null&&r.poids_debit!=null);
+      const magRec=mag.filter(r=>r.recrues_n1).map(r=>({n:r.valeur_axe,ev:r.recrues_n/r.recrues_n1-1})).sort((a,b)=>a.ev-b.ev);
+      O.terr.push({f,nDt:g.length,dtUnder:g.filter(x=>x.gap<-0.0005).length,worst:[...g].sort((a,b)=>a.gap-b.gap)[0],best:[...g].sort((a,b)=>b.gap-a.gap)[0],
+        recW:[...dt].filter(x=>x.ev!=null).sort((a,b)=>a.ev-b.ev)[0],nMag:mg.length,magUnder:mg.filter(r=>r.poids_debit<r.poids_debit_obj).length,magRecDown:magRec.filter(x=>x.ev<0).length,nMagRec:magRec.length,magRecW:magRec[0]});});}
+  O.dtUnder=O.terr.reduce((a,t)=>a+t.dtUnder,0);O.nDt=O.terr.reduce((a,t)=>a+t.nDt,0);O.magUnder=O.terr.reduce((a,t)=>a+t.magUnder,0);O.nMag=O.terr.reduce((a,t)=>a+t.nMag,0);
+  O.worstFmtTerr=[...O.terr].sort((a,b)=>(b.nDt?b.dtUnder/b.nDt:0)-(a.nDt?a.dtUnder/a.nDt:0))[0];
+  return O;}
+function panoHtml(){const O=A.O,k=M.k;
+  const fmtT=`<div class="tbl"><table class="t">${thead(['Format','Poids CA','vs N-1','Poids Débit','vs objectif','CA encartés','vs non enc.','Recrues'])}<tbody>${O.fmt.map(f=>`<tr${f.name==='Groupe'?' style="font-weight:700;background:var(--surface-2)"':''}><td>${esc(f.name)}</td><td class="r num">${pct(f.poids_ca,1)}</td><td class="r">${chg(f.dca)}</td><td class="r num">${pct(f.poids_db,1)}</td><td class="r">${chg(f.gap)}</td><td class="r">${chg(f.ev_ca,evo)}</td><td class="r">${f.ev_ca!=null&&f.ev_ne!=null?chg(f.ev_ca-f.ev_ne,v=>pts(v)):'—'}</td><td class="r">${chg(f.ev_rec,evo)}</td></tr>`).join('')}</tbody></table></div>`;
+  const terrT=O.terr.length?`<div class="tbl"><table class="t">${thead(['Format','DT sous objectif','DT la plus en retard','Magasins sous objectif','Magasins en recul de recrutement','Recrutement le plus en recul'])}<tbody>${O.terr.map(t=>`<tr><td><b>${esc(t.f)}</b></td><td class="r num">${t.dtUnder} / ${t.nDt}</td><td class="r">${t.worst?`${esc(t.worst.n)} ${chg(t.worst.gap)}`:'—'}</td><td class="r num">${t.nMag?`${t.magUnder} / ${t.nMag}`:'—'}</td><td class="r num">${t.nMagRec?`${t.magRecDown} / ${t.nMagRec}`:'—'}</td><td class="r">${t.recW?`${esc(t.recW.n)} ${chg(t.recW.ev,evo)}`:'—'}</td></tr>`).join('')}</tbody></table></div>`:'<p class="src">Données territoriales disponibles sur la dernière période.</p>';
+  const c=[];
+  if(A.segBest&&A.segBest.ev!=null)c.push(['Segments',`${A.segWorst.name} ${evo(A.segWorst.ev)}`,`meilleur : ${A.segBest.name} ${evo(A.segBest.ev)} · plus gros : ${A.segBig.name} (${pct(A.segBig.poids,0)} du CA)`,A.segWorst.ev<0?'vig':'ok','moteurs']);
+  if(A.actBest&&A.actBest.mult!=null)c.push(['Activation',`${A.actBest.name} × ${nf(A.actBest.mult,2)}`,`vs ${M.ref.name} (${nf(M.ref.depense,0)} € de dépense annuelle)`,A.actBest.mult>1?'opp':'vig','leviers']);
+  if(A.app)c.push(['Canal d’adhésion',`App ${pct(A.app.part_groupe,1)}`,`${pts(A.app.dg)} vs N-1${A.carte?` · cartes ${pct(A.carte.part_groupe,1)} (${pts(A.carte.dg)})`:''}`,A.app.dg>=0?'ok':'vig','base']);
+  if(A.mixUp)c.push(['Omnicanalité',`${A.mixUp.name} ${pts(A.mixUp.d)}`,`${A.mixDown.name} ${pts(A.mixDown.d)}`,/online|multi/i.test(A.mixUp.name)?'ok':'vig','leviers']);
+  if(k.cst_depense_n!=null)c.push(['Foyers constants',eur(k.cst_depense_n,0),`dépense ${evo(ev(k.cst_depense_n,k.cst_depense_n1))} vs N-1`,k.cst_depense_n>=k.cst_depense_n1?'ok':'vig','base']);
+  const cliC=`<div class="axes pil">${c.map(x=>`<button type="button" class="dom" data-sec="${x[4]}"><b><span class="dot ${x[3]}"></span>${x[0]}</b><span class="pv">${x[1]}</span><span>${x[2]}</span></button>`).join('')}</div>`;
+  return `<div class="pano"><div class="sec-h" style="margin-top:26px"><h2>Panorama du programme</h2><p>Tout le périmètre · ${esc(M.label)} · ${esc(FILT.nc==='Exclu'?'Cora exclus':FILT.nc)} · ${esc(FILT.stat)}</p></div>
+    <div class="panel"><h3 style="font-size:14.5px">Formats</h3>${fmtT}</div>
+    <div class="panel"><h3 style="font-size:14.5px">Territoires · dernière période disponible</h3>${terrT}</div>
+    <div class="panel"><h3 style="font-size:14.5px">Clients</h3>${cliC}</div></div>`;}
+
 function renderBrief(){const {k}=M,P=A.P,s0=A.signals[0],m=P.mom;
   const h1=`Le CA des encartés ${verb(k.ev_ca_e)} (${evo(k.ev_ca_e)})${s0&&s0.lv>=2?`, ${({Recrutement:'mais le recrutement '+(k.ev_recrues<0?'recule':'ralentit en '+A.recWorstF.name),Panier:'mais le panier recule','Base clients':'mais la base de porteurs diminue',Contribution:'mais le poids Débit reste sous l’objectif',Rétention:'mais les clients occasionnels décrochent'})[s0.dom]}`:''}`;
   const pF=P.fmt[0];
+  const O=A.O,wt=O.worstFmtTerr;
+  const p4=O.nDt?`<b>${O.dtUnder} DT sur ${O.nDt}</b> et <b>${O.magUnder} magasins sur ${O.nMag}</b> sont sous l’objectif de poids Débit, tous formats confondus.${wt&&wt.dtUnder?` Le plus exposé : <b>${wt.f}</b> (${wt.dtUnder}/${wt.nDt} DT, ${wt.worst.n} à ${pts(wt.worst.gap)}).`:''}`:`Par format, le poids Débit est ${P.fmt.map(f=>`${f.name} ${f.gap!=null?pts(f.gap)+' vs obj.':pct(f.poids,1)}`).join(', ')}.`;
   const p1=`Les encartés font <b>${pct(k.poids_ca,1)} du CA</b> (${pts(k.poids_ca-k.poids_ca_n1)} vs N-1${m&&m.dCA!=null?`, ${pts(m.dCA)} vs ${esc(m.prev)}`:''}). Leur CA ${verb(k.ev_ca_e)} de <b>${evo(k.ev_ca_e)}</b> contre ${evo(k.ev_ca_ne)} pour les non-encartés : ${k.ev_ca_e>=k.ev_ca_ne?'<b>le programme surperforme</b>':'<b>le programme sous-performe</b>'}. Premier moteur : ${A.pos.name.toLowerCase()} (${dmeur(A.pos.v)}).`;
   const p2=`La base compte <b>${cnt(k.foyers_n)} foyers actifs</b>${P.retention!=null?`, ${nf(P.retention*100,1)} % des foyers N-1 conservés`:''} : ${cnt(P.won)} gagnés, ${cnt(P.lost)} perdus (<b>solde ${S(A.solde)}${cnt(Math.abs(A.solde))}</b>). Le recrutement ${verb(k.ev_recrues)} de <b>${evo(k.ev_recrues)}</b>${A.recWorstF.ev_rec<0?`, plus fort recul en ${A.recWorstF.name} (${evo(A.recWorstF.ev_rec)})`:''}.`;
   const p3=P.gapCAeur!=null?(P.gapCAeur>0?`Atteindre l’objectif de poids CA représente <b>${meur(P.gapCAeur)} de CA encarté</b> à aller chercher (1 pt = ${meur(P.pt)}).`:`Le poids CA dépasse l’objectif de ${pts(A.gapCA)}, soit <b>${meur(-P.gapCAeur)} d’avance</b>.`):`Le levier le plus pénalisant est <b>${A.neg.name.toLowerCase()}</b> (${dmeur(A.neg.v)}).`;
   const p3b=pF&&pF.sc?` Priorité : <b>${pF.name}</b> (${pF.why.join(', ')}).`:'';
   $('#v-brief').innerHTML=`
-    <div class="greet">Bonjour Hajar · Siège · Programme Club · ${M.label}</div>
+    <div class="greet">Bonjour Hajar · Programme Club · tout le périmètre · ${M.label}${PERIODS[0]&&FILT.per===PERIODS[0].v?' (dernière période)':''}</div>
     <div class="head-row"><div><h1 class="h1">${h1}</h1><p class="byline">Revue Programme Club · rédigée à partir des KPI certifiés du dashboard régalien${M.maj?' · données du '+M.maj:''}</p></div>
       <div class="btns"><button type="button" class="btn">${icon('bell')}Abonné</button><button type="button" class="btn primary">${icon('share')}Exporter &amp; partager</button></div></div>
-    <div class="briefcard"><div class="eb">VOTRE BRIEF · L’ESSENTIEL EN 30 SECONDES</div><div class="pts">
+    <div class="briefcard"><div class="eb">VOTRE BRIEF · TOUT LE PROGRAMME EN 30 SECONDES</div><div class="pts">
       <div class="pt"><span class="k">1</span><p><span class="ptl">Performance</span>${p1}</p></div>
       <div class="pt"><span class="k">2</span><p><span class="ptl">Base clients</span>${p2}</p></div>
-      <div class="pt"><span class="k">3</span><p><span class="ptl">Enjeu</span>${p3}${p3b}</p></div></div>
+      <div class="pt"><span class="k">3</span><p><span class="ptl">Territoires</span>${p4}</p></div>
+      <div class="pt"><span class="k">4</span><p><span class="ptl">Enjeu</span>${p3}${p3b}</p></div></div>
       <div class="minis">
         <button type="button" class="mini" data-q="poids"><div class="l">Poids CA encartés</div><div class="v">${pct(k.poids_ca,1)}<small class="${k.poids_ca>=k.poids_ca_n1?'p':'n'}">${pts(k.poids_ca-k.poids_ca_n1)}</small></div></button>
         <button type="button" class="mini" data-q="poids"><div class="l">Poids Débit</div><div class="v">${pct(k.poids_debit,1)}${A.gapDebit!=null?`<small class="${A.gapDebit>=0?'p':'n'}">${pts(A.gapDebit)} obj</small>`:''}</div></button>
@@ -737,6 +770,7 @@ function renderBrief(){const {k}=M,P=A.P,s0=A.signals[0],m=P.mom;
         ${P.gapCAeur!=null?`<button type="button" class="mini" data-q="poids"><div class="l">${P.gapCAeur>0?'À aller chercher':'Avance objectif'}</div><div class="v">${meur(Math.abs(P.gapCAeur))}</div></button>`:''}</div>
       <p class="foot">Chaque chiffre est cliquable : définition, source et explication par Talk to my Data.</p></div>
     <div class="axes pil">${P.pil.map(d=>`<button type="button" class="dom" data-sec="${d[4]}"><b><span class="dot ${d[1]}"></span>${d[0]}</b><span class="pv">${d[2]}</span><span>${d[3]}</span></button>`).join('')}</div>
+    ${panoHtml()}
     <div class="cols"><div>
       <div class="sec-h"><h2>Vos décisions de la semaine</h2><p>Proposées à partir des KPI · à valider</p></div>
       <div class="decs">${decisions()}<button type="button" class="btn sm" data-sec="actions" style="margin-top:4px">Voir le plan d’action complet</button></div>
@@ -903,7 +937,7 @@ function splash(ck){const inT=window.self!==window.top;['brief','deep','rg','his
   $('#v-brief').innerHTML=`<div class="splash" style="max-width:640px;margin:8vh auto 0;text-align:center"><div class="eb" style="font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--accent);text-transform:uppercase">Pulse · Programme Club</div>
    <h1 class="h1" style="margin:10px auto 10px;max-width:none">${inT?'Connexion aux données Programme Club':'Pulse s’ouvre dans Tableau Cloud'}</h1>
    <p class="byline" style="font-size:15px;line-height:1.6">${inT?(ck?'Le navigateur ne transmet pas la session Tableau Cloud à l’extension (cookies tiers bloqués). Autorisez les cookies tiers pour <b>[*.]online.tableau.com</b> dans les paramètres du navigateur, puis rechargez la page.':esc(MODE_MSG||'Initialisation…')+'<br>Pulse lit les chiffres certifiés du dashboard Programme Club avec vos droits Tableau.'):'Cette page ne contient aucune donnée. Ouvrez le dashboard <b>Pulse Programme Club</b> sur Tableau Cloud pour lire la performance du programme.'}</p></div>`;}
-function renderAll(){if(!M){splash();return;}figN=0;A=analyse();A.P=pilot();renderGbar();renderBrief();renderDeep();renderHist();if(curView==='rg')renderRG();else if(!$('#v-rg').hidden)renderRG();if(!['brief','deep','rg','hist'].some(x=>!$('#v-'+x).hidden))show('brief');$('#ttmd').hidden=true;}
+function renderAll(){if(!M){splash();return;}figN=0;A=analyse();A.P=pilot();A.O=panorama();renderGbar();renderBrief();renderDeep();renderHist();if(curView==='rg')renderRG();else if(!$('#v-rg').hidden)renderRG();if(!['brief','deep','rg','hist'].some(x=>!$('#v-'+x).hidden))show('brief');$('#ttmd').hidden=true;}
 
 document.querySelectorAll('.side .nav[data-go]').forEach(n=>n.addEventListener('click',()=>{if(n.dataset.go==='ttmd')openTT(null,{brief:'Ma journée',deep:'Analyse approfondie',rg:'Dashboard régalien'}[curView]+' · Programme Club');else show(n.dataset.go);}));
 $('#ttClose').addEventListener('click',()=>{$('#ttmd').hidden=true;setNav(curView);});
@@ -940,9 +974,10 @@ function renderGbar(){const el=$('#gbar');if(!el)return;if(!M){el.innerHTML='';r
     return `<div class="filt"><label for="g_${c.k}">${c.l}</label><select id="g_${c.k}" data-k="${c.k}" ${live&&!BUSY?'':'disabled'}>${opts.map(o=>`<option value="${esc(o.v)}"${o.v===FILT[c.k]?' selected':''}>${esc(o.l)}</option>`).join('')}</select></div>`;};
   el.innerHTML=`<div class="filters gbar${BUSY?' busy':''}">${CTRL.filter(c=>c.main).map(sel).join('')}<button type="button" class="gmore-btn" id="gMore" aria-expanded="${gbarOpen}">${gbarOpen?'− Moins de filtres':'+ Plus de filtres'}</button>
     ${gbarOpen?`<div class="gmore">${CTRL.filter(c=>!c.main).map(sel).join('')}</div>`:''}
-    <p class="note">${BUSY?'<b>Mise à jour…</b> Tableau recalcule le dashboard, puis Pulse relit les chiffres.':live?'Mêmes filtres que le dashboard régalien. Ils s’appliquent au brief, à l’analyse et au dashboard.':'Connexion à Tableau Cloud en cours…'}</p></div>`;
+    <p class="note">${BUSY?'<b>Mise à jour…</b> Tableau recalcule le dashboard, puis Pulse relit les chiffres.':live?`Par défaut : dernière période CAD, tout le programme${PERIODS[0]&&FILT.per!==PERIODS[0].v?' · <a href="#" data-latest="1">revenir à la dernière période</a>':''}. Le format focus ne change que le détail territorial et le dashboard.`:'Connexion à Tableau Cloud en cours…'}</p></div>`;
   el.querySelectorAll('select[data-k]').forEach(s=>s.addEventListener('change',e=>{const k=e.target.dataset.k;FILT[k]=e.target.value;if(k==='tempo')FILT.per='';refreshTableau();}));
   $('#gMore').addEventListener('click',()=>{gbarOpen=!gbarOpen;renderGbar();});
+  el.querySelectorAll('[data-latest]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();FILT.tempo='CAD';FILT.per='';refreshTableau();}));
   const pm=document.querySelector('.side .perim');if(pm)pm.innerHTML=`<b>Votre périmètre</b>National · ${esc(M.scope||'encartés')}`;
 }
 
