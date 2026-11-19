@@ -12,7 +12,7 @@
 :root{
   --bg:#F5F6F8; --surface:#FFFFFF; --surface-2:#F3F4F7; --ink:#0E1726; --ink-2:#3A4556; --muted:#5B6474; --line:#E4E7EC;
   --accent:#2348C9; --accent-ink:#FFFFFF; --accent-soft:#EAF0FF; --accent-deep:#1A3699;
-  --brief:#0E1726; --brief-ink:#FFFFFF; --brief-muted:#9AA6BC; --brief-tile:#1B2638;
+  --brief:linear-gradient(135deg,#1D3BA8 0%,#2348C9 55%,#3B5FE0 100%); --brief-ink:#FFFFFF; --brief-muted:#CBD7FF; --brief-tile:rgba(255,255,255,.13);
   --alert:#B4530A; --alert-soft:#FFF1E6; --vig:#A16207; --vig-soft:#FEF6DD; --ok:#0F766E; --ok-soft:#E3F5F1; --opp:#2348C9; --opp-soft:#EAF0FF;
   --neg:#E0915A; --pos:#2348C9; --ia:#6D28D9; --ia-soft:#F1EBFE;
   --shadow:0 1px 2px rgba(14,23,38,.05),0 8px 24px rgba(14,23,38,.06);
@@ -21,14 +21,14 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0B0F19; --surface:#131A28; --surface-2:#1A2233; --ink:#E7ECF5; --ink-2:#C3CBD9; --muted:#97A2B6; --line:#263044;
   --accent:#86A2FF; --accent-ink:#0B0F19; --accent-soft:#1B2650; --accent-deep:#A9BDFF;
-  --brief:#060A12; --brief-ink:#F2F5FA; --brief-muted:#8E9AB0; --brief-tile:#151D2C;
+  --brief:linear-gradient(135deg,#17255E 0%,#1E3282 60%,#27409E 100%); --brief-ink:#F2F5FA; --brief-muted:#B9C7F2; --brief-tile:rgba(255,255,255,.10);
   --alert:#F5A469; --alert-soft:#3A2416; --vig:#F2C453; --vig-soft:#352B12; --ok:#5ED3C0; --ok-soft:#12302C; --opp:#86A2FF; --opp-soft:#1B2650;
   --neg:#E59A66; --pos:#86A2FF; --ia:#B794FF; --ia-soft:#2A1F45;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.3); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0B0F19; --surface:#131A28; --surface-2:#1A2233; --ink:#E7ECF5; --ink-2:#C3CBD9; --muted:#97A2B6; --line:#263044;
   --accent:#86A2FF; --accent-ink:#0B0F19; --accent-soft:#1B2650; --accent-deep:#A9BDFF;
-  --brief:#060A12; --brief-ink:#F2F5FA; --brief-muted:#8E9AB0; --brief-tile:#151D2C;
+  --brief:linear-gradient(135deg,#17255E 0%,#1E3282 60%,#27409E 100%); --brief-ink:#F2F5FA; --brief-muted:#B9C7F2; --brief-tile:rgba(255,255,255,.10);
   --alert:#F5A469; --alert-soft:#3A2416; --vig:#F2C453; --vig-soft:#352B12; --ok:#5ED3C0; --ok-soft:#12302C; --opp:#86A2FF; --opp-soft:#1B2650;
   --neg:#E59A66; --pos:#86A2FF; --ia:#B794FF; --ia-soft:#2A1F45;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.3); color-scheme:dark}
@@ -95,12 +95,12 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .pt .k{width:28px;height:28px;border-radius:8px;background:var(--brief-tile);display:grid;place-items:center;font-size:13px;font-weight:700}
 .pt b{font-weight:700}
 .minis{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
-.mini{background:var(--brief-tile);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:9px 13px;min-width:132px;text-align:left;color:inherit}
-.mini:hover{border-color:rgba(255,255,255,.3)}
+.mini{background:var(--brief-tile);border:1px solid rgba(255,255,255,.16);border-radius:10px;padding:9px 13px;min-width:132px;text-align:left;color:inherit}
+.mini:hover{border-color:rgba(255,255,255,.55)}
 .mini .l{font-size:11.5px;color:var(--brief-muted)}
 .mini .v{font-size:16px;font-weight:700}
 .mini .v small{font-size:12px;font-weight:700;margin-left:4px}
-.mini .v small.n{color:#F5A469} .mini .v small.p{color:#9DB4F5}
+.mini .v small.n{color:#FFC59A} .mini .v small.p{color:#D9E4FF}
 .briefcard .foot{font-size:12px;color:var(--brief-muted);margin-top:14px}
 .domains{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;margin-top:16px}
 .dom{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;text-align:left;min-width:0}
@@ -294,6 +294,26 @@ table.t .r{text-align:right}
 .gbar{margin:0 0 22px}.gbar.busy{opacity:.7}.gbar .gmore{display:flex;gap:10px;flex-wrap:wrap;width:100%;padding-top:8px;border-top:1px dashed var(--line)}
 .gmore-btn{align-self:flex-end;font:inherit;font-size:12.5px;font-weight:600;color:var(--accent);background:none;border:0;padding:7px 4px;cursor:pointer}
 .filt select:disabled{opacity:.65;cursor:not-allowed}
+
+/* Pilotage (brief enrichi + analyse) */
+.briefcard{box-shadow:0 10px 30px -14px rgba(35,72,201,.55)}
+.ptl{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--brief-muted);margin-right:8px}
+.axes.pil{grid-template-columns:repeat(5,minmax(0,1fr))}
+.axes.pil .pv{display:block;color:var(--ink);font-weight:600;font-size:13px;margin-top:2px}
+.decs{display:flex;flex-direction:column;gap:8px}
+.dec{display:grid;grid-template-columns:28px minmax(0,1fr);gap:12px;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:12px;padding:12px 14px}
+.dec .k{width:26px;height:26px;border-radius:8px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:800;font-size:13px}
+.dec b{font-size:15px}
+.dec .meta{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:4px}
+.dec .meta b{font-size:12.5px;color:var(--ink)}
+.imp{font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:1px 8px}
+.enj{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.ej{border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;background:var(--surface)}
+.ej .l{font-size:12.5px;color:var(--muted);font-weight:600}
+.ej .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.ej .d{font-size:12px;color:var(--muted)}
+.ej.n .v{color:var(--neg)} .ej.p .v{color:var(--accent)} .ej.s{background:var(--surface-2);border-style:dashed}
+@media (max-width:900px){.axes.pil{grid-template-columns:repeat(2,minmax(0,1fr))}.enj{grid-template-columns:minmax(0,1fr)}}
 </style>
 </head>
 <body>
@@ -629,36 +649,107 @@ function suggHtml(skip){return `<div class="sugg"><span class="eb">QUESTIONS SUG
 function bindSugg(){$('#ttBody').querySelectorAll('[data-qq]').forEach(b=>b.addEventListener('click',()=>openTT(b.dataset.qq,$('#ttCtx').textContent.replace('Contexte : ',''))));}
 
 /* ===================== MA JOURNÉE (niveau 1) ===================== */
-function renderBrief(){const {k}=M;const s0=A.signals[0];
-  const axes=[['Contribution',A.gapDebit!=null&&A.gapDebit<-0.005?'vig':'ok',A.gapDebit!=null?pts(A.gapDebit)+' vs objectif':pct(k.poids_debit),'performance'],
-    ['Croissance du CA',k.ev_ca_e>=0?'ok':'alert',evo(k.ev_ca_e)+' encartés','performance'],['Fréquence',k.ev_freq_e>=0?'ok':'vig',evo(k.ev_freq_e),'moteurs'],['Panier',k.ev_panier_e>=0?'ok':'vig',evo(k.ev_panier_e),'moteurs'],
-    ['Recrutement',k.ev_recrues<-0.02?'alert':k.ev_recrues<0||A.recWorstF.ev_rec<-0.02?'vig':'ok',evo(k.ev_recrues),'base'],['Rétention',A.solde<0?'alert':'vig',cnt(k.foyers_perdus)+' foyers perdus','base'],
-    ['Valeur & activation','opp',A.actBest?`${A.actBest.name} × ${nf(A.actBest.mult,2)}`:'','leviers'],['Omnicanalité',A.mixUp&&/online/i.test(A.mixUp.name)?'ok':'vig',A.mixUp?`${A.mixUp.name} ${pts(A.mixUp.d)}`:'','leviers']];
+/* ===================== PILOTAGE : valeur en jeu, dynamique, priorités (règles fixes, à partir des KPI) ===================== */
+function pilot(){const {k,fs,dts,ref}=M,P={};
+  const caTot=(k.ca_e||0)+(k.ca_ne||0),dbTot=(k.debit_e||0)+(k.debit_ne||0);P.caTot=caTot;P.dbTot=dbTot;
+  P.pt=caTot?caTot*0.01:null;                                              // valeur d'un point de poids CA
+  P.gapCAeur=A.gapCA!=null&&caTot?-A.gapCA*caTot:null;                     // > 0 : CA encarté manquant pour l'objectif
+  P.gapDbPass=A.gapDebit!=null&&dbTot?-A.gapDebit*dbTot:null;              // > 0 : passages encartés manquants
+  P.caGain=k.ca_gagnes;P.caLost=k.ca_perdus!=null?Math.abs(k.ca_perdus):null;P.caNet=P.caGain!=null&&P.caLost!=null?P.caGain-P.caLost:null;
+  P.lost=k.foyers_perdus!=null?Math.abs(k.foyers_perdus):null;P.won=k.foyers_gagnes;
+  P.recNeed=P.lost!=null&&P.won!=null?P.lost-P.won:null;
+  P.retention=k.foyers_n1&&P.lost!=null?1-P.lost/k.foyers_n1:null;
+  P.valLost=P.lost&&P.caLost?P.caLost/P.lost:null;                         // CA moyen d'un foyer perdu
+  const b=A.actBest;P.simAct=b&&ref&&ref.clients&&b.depense>ref.depense?{n:ref.clients*0.01,v:ref.clients*0.01*(b.depense-ref.depense),name:b.name,ref:ref.name}:null;
+  P.simPanier=k.clients_e&&k.freq_e?k.clients_e*k.freq_e:null;             // CA d'1 € de panier en plus par visite encartée
+  P.simFreq=k.clients_e&&k.panier_e?k.clients_e*0.1*k.panier_e:null;      // CA de +0,1 visite par encarté
+  /* dynamique récente : historique des périodes */
+  let H=null;try{H=TB?histFromTables():(RAW?buildHist():null);}catch(e){H=null;}P.H=H;
+  const G=H&&H.rows?H.rows.map(r=>r.fmt.Groupe||{}):[],L=G.length;
+  if(L>=2){const a=G[L-1],p=G[L-2],d=(x,y)=>x!=null&&y!=null?x-y:null;
+    P.mom={prev:H.rows[L-2].label,dCA:d(a.poids_ca,p.poids_ca),dDb:d(a.poids_db,p.poids_db),dEv:d(a.ev_ca_e,p.ev_ca_e),evCA:a.ev_ca_e,dFreq:d(H.rows[L-1].ev_freq,H.rows[L-2].ev_freq),dPan:d(H.rows[L-1].ev_panier,H.rows[L-2].ev_panier)};
+    const w=Math.min(4,L-1);P.mom.w=w;P.mom.trDb=d(a.poids_db,G[L-1-w].poids_db);P.mom.trCA=d(a.poids_ca,G[L-1-w].poids_ca);
+    const gaps=G.map(g=>g.obj_db!=null&&g.poids_db!=null?g.poids_db-g.obj_db:null).filter(v=>v!=null);P.mom.under=gaps.filter(v=>v<0).length;P.mom.nGap=gaps.length;
+    let run=0;for(let i=gaps.length-1;i>=0&&gaps[i]<0;i--)run++;P.mom.runUnder=run;}
+  /* priorités par format : écart objectif, recrutement, croissance vs non-encartés */
+  P.fmt=fs.map(f=>{const gap=f.poids_debit_obj!=null?f.poids_debit-f.poids_debit_obj:null;const why=[];
+    if(gap!=null&&gap<0)why.push(`${pts(gap)} vs objectif`);if(f.ev_rec<-0.02)why.push(`recrutement ${evo(f.ev_rec)}`);if(f.ev_ca_e!=null&&f.ev_ca_ne!=null&&f.ev_ca_e<f.ev_ca_ne)why.push('encartés moins dynamiques que les non-encartés');
+    const sc=(gap!=null&&gap<0?2:0)+(f.ev_rec<-0.02?1:0)+(f.ev_ca_e<f.ev_ca_ne?1:0);
+    return {name:f.name,poids:f.poids_debit,gap,evCA:f.ev_ca_e,evNE:f.ev_ca_ne,evRec:f.ev_rec,sc,why,lv:sc>=3?'alert':sc>=1?'vig':'ok'};}).sort((a,b)=>b.sc-a.sc||(a.gap??0)-(b.gap??0));
+  P.dt=[...dts].filter(d=>d.dobj!=null).sort((a,b)=>a.dobj-b.dobj).slice(0,5);
+  /* 5 piliers du programme */
+  const st=(c,v)=>c?'alert':v?'vig':'ok';
+  P.pil=[
+    ['Acquisition',st(k.ev_recrues<-0.05,k.ev_recrues<0),`${cnt(k.recrues)} recrues`,`${evo(k.ev_recrues)} vs N-1`,'base','rec'],
+    ['Rétention',st(A.solde<0&&P.retention!=null&&P.retention<0.8,A.solde<0),P.retention!=null?`${nf(P.retention*100,1)} % des foyers conservés`:`${cnt(k.foyers_n)} foyers actifs`,`solde ${S(A.solde)}${cnt(Math.abs(A.solde))} foyers`,'base','base'],
+    ['Engagement',st(k.ev_freq_e<-0.02,k.ev_freq_e<0),`${dec(k.freq_e)} visites par encarté`,`${evo(k.ev_freq_e)} vs N-1`,'moteurs','eqc'],
+    ['Valeur',st(k.ev_panier_e<-0.02&&k.ev_ca_e<0,k.ev_panier_e<0||k.ev_ca_e<k.ev_ca_ne),`panier ${eur(k.panier_e)}`,`${evo(k.ev_panier_e)} vs N-1`,'moteurs','eqc'],
+    ['Contribution',st(A.gapDebit!=null&&A.gapDebit<-0.01,A.gapDebit!=null?A.gapDebit<0:k.poids_debit<k.poids_debit_n1),`${pct(k.poids_debit,1)} du trafic`,A.gapDebit!=null?`${pts(A.gapDebit)} vs objectif`:`${pts(k.poids_debit-k.poids_debit_n1)} vs N-1`,'performance','poids']];
+  return P;}
+const chg=(v,f=pts)=>v==null?'—':`<span class="${v>0?'c-up':v<0?'c-down':''}">${f(v)}</span>`;
+function momCard(){const m=A.P.mom;if(!m)return '';
+  const L=[['Poids CA encartés',m.dCA],['Poids Débit encartés',m.dDb],['Évol. CA encartés',m.dEv]].filter(x=>x[1]!=null);
+  return `<div class="aside" style="position:static;margin-bottom:12px"><div class="eb">✦ CE QUI A CHANGÉ</div><p class="sub">vs ${esc(m.prev)}</p>
+    ${L.map(x=>`<div class="kline"><span>${x[0]}</span><b>${chg(x[1])}</b></div>`).join('')}
+    ${m.trDb!=null?`<div class="kline"><span>Poids Débit sur ${m.w} périodes</span><b>${chg(m.trDb)}</b></div>`:''}
+    ${m.nGap?`<p class="sub" style="margin-top:8px">${m.runUnder?`Sous l’objectif de poids Débit depuis <b>${m.runUnder} période${m.runUnder>1?'s':''}</b>.`:`Au-dessus de l’objectif de poids Débit sur la dernière période.`} ${m.under}/${m.nGap} périodes sous l’objectif.</p>`:''}</div>`;}
+function decisions(){return recos().slice(0,3).map((r,i)=>`<div class="dec"><span class="k">${i+1}</span><div><b>${r[0]}</b><div class="meta"><span>${esc(r[2])}</span><span>${esc(r[3])}</span><span>Cible : <b>${r[4]}</b></span>${r[6]?`<span class="imp">${r[6]}</span>`:''}</div></div></div>`).join('');}
+function scorecard(){const {k}=M,P=A.P;const st=(v,inv)=>v==null?'':`<span class="dot ${(inv?-v:v)>=0?'ok':'vig'}"></span>`;
+  const R=[['Poids CA encartés',pct(k.poids_ca),k.poids_ca-k.poids_ca_n1,A.gapCA,'pts'],['Poids Débit encartés',pct(k.poids_debit),k.poids_debit-k.poids_debit_n1,A.gapDebit,'pts'],
+    ['CA encartés',meur(k.ca_e),k.ev_ca_e,null,'evo'],['CA non encartés',meur(k.ca_ne),k.ev_ca_ne,null,'evo'],['Clients encartés',cnt(k.clients_e),k.ev_clients_e,null,'evo'],
+    ['Fréquence',dec(k.freq_e),k.ev_freq_e,null,'evo'],['Panier moyen',eur(k.panier_e),k.ev_panier_e,null,'evo'],['Recrues',cnt(k.recrues),k.ev_recrues,null,'evo'],
+    ['Foyers actifs',cnt(k.foyers_n),ev(k.foyers_n,k.foyers_n1),null,'evo'],['Taux de conservation',P.retention!=null?pct(P.retention,1):'—',null,null,'evo']];
+  return `<div class="tbl"><table class="t">${thead(['Indicateur','Valeur','vs N-1','vs objectif',''])}<tbody>${R.map(r=>`<tr><td>${r[0]}</td><td class="r num"><b>${r[1]}</b></td><td class="r">${r[2]==null?'—':chg(r[2],r[4]==='pts'?pts:evo)}</td><td class="r">${r[3]==null?'—':chg(r[3])}</td><td>${st(r[3]!=null?r[3]:r[2])}</td></tr>`).join('')}</tbody></table></div>`;}
+function enjeux(){const P=A.P,{k}=M,c=[];
+  if(P.gapCAeur!=null)c.push([P.gapCAeur>0?'CA encarté à aller chercher':'Avance sur l’objectif de poids CA',meur(Math.abs(P.gapCAeur)),`Écart de ${pts(A.gapCA)} × CA total ${meur(P.caTot)}`,P.gapCAeur>0?'n':'p']);
+  if(P.pt)c.push(['Valeur d’un point de poids CA',meur(P.pt),'1 % du CA total, encartés + non encartés','']);
+  if(P.caNet!=null)c.push(['Balance de valeur des foyers',dmeur(P.caNet),`CA des gagnés ${meur(P.caGain)} − CA des perdus ${meur(P.caLost)}`,P.caNet>=0?'p':'n']);
+  if(P.recNeed!=null)c.push([P.recNeed>0?'Foyers à recruter pour stabiliser la base':'Foyers d’avance sur les départs',cnt(Math.abs(P.recNeed)),`${cnt(P.won)} gagnés · ${cnt(P.lost)} perdus`,P.recNeed>0?'n':'p']);
+  if(P.simPanier)c.push(['Simulation : +1 € de panier encarté',meur(P.simPanier),`${cnt(k.clients_e)} encartés × ${dec(k.freq_e)} visites`,'s']);
+  if(P.simAct)c.push([`Simulation : 1 % des ${P.simAct.ref.toLowerCase()} → ${P.simAct.name}`,meur(P.simAct.v),`${cnt(P.simAct.n)} clients × écart de dépense annuelle`,'s']);
+  return `<div class="enj">${c.map(x=>`<div class="ej ${x[3]}"><span class="l">${x[0]}</span><span class="v">${x[1]}</span><span class="d">${x[2]}</span></div>`).join('')}</div>`;}
+function prioFmt(){const P=A.P;return `<div class="tbl"><table class="t">${thead(['Format','Poids Débit','vs objectif','CA encartés','CA non enc.','Recrutement','Pourquoi'])}<tbody>${P.fmt.map(f=>`<tr><td><span class="dot ${f.lv}"></span> <b>${esc(f.name)}</b></td><td class="r num">${pct(f.poids,1)}</td><td class="r">${chg(f.gap)}</td><td class="r">${chg(f.evCA,evo)}</td><td class="r">${chg(f.evNE,evo)}</td><td class="r">${chg(f.evRec,evo)}</td><td style="color:var(--muted);font-size:12.5px">${f.why.join(' · ')||'Dans la cible'}</td></tr>`).join('')}</tbody></table></div>`;}
+function prioDT(){const P=A.P;if(!P.dt.length)return '';return `<div class="tbl"><table class="t">${thead([M.ax+' '+M.focus,'Poids Débit','vs objectif','vs N-1','Magasins','Recrutement'])}<tbody>${P.dt.map(d=>`<tr><td><b>${esc(d.name)}</b></td><td class="r num">${pct(d.poids_debit,1)}</td><td class="r">${chg(d.dobj)}</td><td class="r">${chg(d.dn1)}</td><td class="r num">${d.nb_mag!=null?nf(d.nb_mag,0):'—'}</td><td class="r">${chg(d.ev,evo)}</td></tr>`).join('')}</tbody></table></div>`;}
+function trajChart(){const H=A.P.H;if(!H||!H.rows||H.rows.length<3)return '';const R=H.rows.slice(-16),G=r=>r.fmt.Groupe||{};
+  return `<div class="chart">${hLine(R,[{name:'Poids Débit',get:r=>G(r).poids_db},{name:'Objectif',get:r=>G(r).obj_db,dash:1,color:'#B4530A',w:1.6},{name:'N-1',get:r=>G(r).poids_db_n1,dash:1,color:'var(--muted)',w:1.6}],{fmt:hpct,h:220})}</div>`;}
+
+function renderBrief(){const {k}=M,P=A.P,s0=A.signals[0],m=P.mom;
   const h1=`Le CA des encartés ${verb(k.ev_ca_e)} (${evo(k.ev_ca_e)})${s0&&s0.lv>=2?`, ${({Recrutement:'mais le recrutement '+(k.ev_recrues<0?'recule':'ralentit en '+A.recWorstF.name),Panier:'mais le panier recule','Base clients':'mais la base de porteurs diminue',Contribution:'mais le poids Débit reste sous l’objectif',Rétention:'mais les clients occasionnels décrochent'})[s0.dom]}`:''}`;
+  const pF=P.fmt[0];
+  const p1=`Les encartés font <b>${pct(k.poids_ca,1)} du CA</b> (${pts(k.poids_ca-k.poids_ca_n1)} vs N-1${m&&m.dCA!=null?`, ${pts(m.dCA)} vs ${esc(m.prev)}`:''}). Leur CA ${verb(k.ev_ca_e)} de <b>${evo(k.ev_ca_e)}</b> contre ${evo(k.ev_ca_ne)} pour les non-encartés : ${k.ev_ca_e>=k.ev_ca_ne?'<b>le programme surperforme</b>':'<b>le programme sous-performe</b>'}. Premier moteur : ${A.pos.name.toLowerCase()} (${dmeur(A.pos.v)}).`;
+  const p2=`La base compte <b>${cnt(k.foyers_n)} foyers actifs</b>${P.retention!=null?`, ${nf(P.retention*100,1)} % des foyers N-1 conservés`:''} : ${cnt(P.won)} gagnés, ${cnt(P.lost)} perdus (<b>solde ${S(A.solde)}${cnt(Math.abs(A.solde))}</b>). Le recrutement ${verb(k.ev_recrues)} de <b>${evo(k.ev_recrues)}</b>${A.recWorstF.ev_rec<0?`, plus fort recul en ${A.recWorstF.name} (${evo(A.recWorstF.ev_rec)})`:''}.`;
+  const p3=P.gapCAeur!=null?(P.gapCAeur>0?`Atteindre l’objectif de poids CA représente <b>${meur(P.gapCAeur)} de CA encarté</b> à aller chercher (1 pt = ${meur(P.pt)}).`:`Le poids CA dépasse l’objectif de ${pts(A.gapCA)}, soit <b>${meur(-P.gapCAeur)} d’avance</b>.`):`Le levier le plus pénalisant est <b>${A.neg.name.toLowerCase()}</b> (${dmeur(A.neg.v)}).`;
+  const p3b=pF&&pF.sc?` Priorité : <b>${pF.name}</b> (${pF.why.join(', ')}).`:'';
   $('#v-brief').innerHTML=`
     <div class="greet">Bonjour Hajar · Siège · Programme Club · ${M.label}</div>
-    <div class="head-row"><div><h1 class="h1">${h1}</h1><p class="byline">Revue Programme Club — hebdomadaire · rédigée à partir des KPI certifiés du dashboard régalien${M.maj?' · données du '+M.maj:''}</p></div>
+    <div class="head-row"><div><h1 class="h1">${h1}</h1><p class="byline">Revue Programme Club · rédigée à partir des KPI certifiés du dashboard régalien${M.maj?' · données du '+M.maj:''}</p></div>
       <div class="btns"><button type="button" class="btn">${icon('bell')}Abonné</button><button type="button" class="btn primary">${icon('share')}Exporter &amp; partager</button></div></div>
-    <div class="briefcard"><div class="eb">VOTRE BRIEF · L’ESSENTIEL EN 3 POINTS</div><div class="pts">
-      <div class="pt"><span class="k">1</span><p>Les encartés font <b>${pct(k.poids_ca,1)} du CA</b> (${pts(k.poids_ca-k.poids_ca_n1)} vs N-1). Leur CA ${verb(k.ev_ca_e)} de <b>${evo(k.ev_ca_e)}</b> quand celui des non-encartés ${verb(k.ev_ca_ne)} de ${evo(k.ev_ca_ne)}. Premier levier : <b>${A.pos.name.toLowerCase()}</b> (${dmeur(A.pos.v)}).</p></div>
-      <div class="pt"><span class="k">2</span><p>Le recrutement ${verb(k.ev_recrues)} de <b>${evo(k.ev_recrues)}</b>${A.recWorstF.ev_rec<0?`, avec le plus fort recul en <b>${A.recWorstF.name} (${evo(A.recWorstF.ev_rec)})</b>`:''}. La base compte <b>${cnt(k.foyers_n)}</b> foyers actifs (${S(A.solde)}${cnt(Math.abs(A.solde))}).</p></div>
-      <div class="pt"><span class="k">3</span><p>Le levier le plus pénalisant est <b>${A.neg.name.toLowerCase()} (${dmeur(A.neg.v)})</b>.${A.gapDebit!=null?` Le poids Débit des encartés est à <b>${pts(A.gapDebit)} de l’objectif</b>.`:''}</p></div></div>
+    <div class="briefcard"><div class="eb">VOTRE BRIEF · L’ESSENTIEL EN 30 SECONDES</div><div class="pts">
+      <div class="pt"><span class="k">1</span><p><span class="ptl">Performance</span>${p1}</p></div>
+      <div class="pt"><span class="k">2</span><p><span class="ptl">Base clients</span>${p2}</p></div>
+      <div class="pt"><span class="k">3</span><p><span class="ptl">Enjeu</span>${p3}${p3b}</p></div></div>
       <div class="minis">
-        <button type="button" class="mini" data-q="poids"><div class="l">Poids CA encartés</div><div class="v">${pct(k.poids_ca)}<small class="${k.poids_ca>=k.poids_ca_n1?'p':'n'}">${pts(k.poids_ca-k.poids_ca_n1)}</small></div></button>
-        <button type="button" class="mini" data-q="poids"><div class="l">Poids Débit</div><div class="v">${pct(k.poids_debit)}${A.gapDebit!=null?`<small class="${A.gapDebit>=0?'p':'n'}">${pts(A.gapDebit)} obj</small>`:''}</div></button>
+        <button type="button" class="mini" data-q="poids"><div class="l">Poids CA encartés</div><div class="v">${pct(k.poids_ca,1)}<small class="${k.poids_ca>=k.poids_ca_n1?'p':'n'}">${pts(k.poids_ca-k.poids_ca_n1)}</small></div></button>
+        <button type="button" class="mini" data-q="poids"><div class="l">Poids Débit</div><div class="v">${pct(k.poids_debit,1)}${A.gapDebit!=null?`<small class="${A.gapDebit>=0?'p':'n'}">${pts(A.gapDebit)} obj</small>`:''}</div></button>
         <button type="button" class="mini" data-q="eqc"><div class="l">CA encartés</div><div class="v">${meur(k.ca_e)}<small class="${k.ev_ca_e>=0?'p':'n'}">${evo(k.ev_ca_e)}</small></div></button>
-        <button type="button" class="mini" data-q="eqc"><div class="l">Panier encartés</div><div class="v">${eur(k.panier_e)}<small class="${k.ev_panier_e>=0?'p':'n'}">${evo(k.ev_panier_e)}</small></div></button>
-        <button type="button" class="mini" data-q="rec"><div class="l">Recrues</div><div class="v">${cnt(k.recrues)}<small class="${k.ev_recrues>=0?'p':'n'}">${evo(k.ev_recrues)}</small></div></button></div>
+        <button type="button" class="mini" data-q="base"><div class="l">Foyers actifs</div><div class="v">${cnt(k.foyers_n)}<small class="${A.solde>=0?'p':'n'}">${S(A.solde)}${cnt(Math.abs(A.solde))}</small></div></button>
+        <button type="button" class="mini" data-q="rec"><div class="l">Recrues</div><div class="v">${cnt(k.recrues)}<small class="${k.ev_recrues>=0?'p':'n'}">${evo(k.ev_recrues)}</small></div></button>
+        ${P.gapCAeur!=null?`<button type="button" class="mini" data-q="poids"><div class="l">${P.gapCAeur>0?'À aller chercher':'Avance objectif'}</div><div class="v">${meur(Math.abs(P.gapCAeur))}</div></button>`:''}</div>
       <p class="foot">Chaque chiffre est cliquable : définition, source et explication par Talk to my Data.</p></div>
-    <div class="axes">${axes.map(d=>`<button type="button" class="dom" data-sec="${d[3]}"><b><span class="dot ${d[1]}"></span>${d[0]}</b><span>${d[2]}</span></button>`).join('')}</div>
+    <div class="axes pil">${P.pil.map(d=>`<button type="button" class="dom" data-sec="${d[4]}"><b><span class="dot ${d[1]}"></span>${d[0]}</b><span class="pv">${d[2]}</span><span>${d[3]}</span></button>`).join('')}</div>
     <div class="cols"><div>
-      <div class="sec-h"><h2>${A.signals.length} signaux méritent votre attention</h2><p>Classés par gravité</p></div>
+      <div class="sec-h"><h2>Vos décisions de la semaine</h2><p>Proposées à partir des KPI · à valider</p></div>
+      <div class="decs">${decisions()}<button type="button" class="btn sm" data-sec="actions" style="margin-top:4px">Voir le plan d’action complet</button></div>
+      <div class="sec-h" style="margin-top:22px"><h2>${A.signals.length} signa${A.signals.length>1?'ux méritent':'l mérite'} votre attention</h2><p>Classés par gravité</p></div>
       ${A.signals.map(s=>{const c=sigCard(s);return `<article class="signal"><div class="sig-top"><span class="tag ${s.t}">${s.tl}</span><span class="tag dom2">${s.dom}</span><span class="impact ${s.t==='opp'?'p':''}">${c.imp}</span></div><h3>${c.title}</h3><p>${c.txt}</p>
         <div class="sig-act"><button type="button" class="btn dark sm" data-sec="${s.sec}">Lire l’analyse</button><button type="button" class="btn sm" data-q="${s.q}">Analyser avec TTMD</button><button type="button" class="btn ghost sm">Pas pertinent pour moi</button></div></article>`;}).join('')}
     </div><div>
-      <div class="aside"><div class="eb">✦ TENDANCE DU RECRUTEMENT</div><p class="sub">${M.focus} · écart cumulé vs N-1</p>${miniRec()}<button type="button" class="btn sm" data-sec="base" style="margin:10px 0 12px">Lire l’analyse</button></div>
+      ${momCard()}
+      <div class="aside" style="position:static;margin-bottom:12px"><div class="eb">✦ OÙ AGIR EN PRIORITÉ</div><p class="sub">Formats classés par urgence</p>
+        ${P.fmt.map(f=>`<div class="kline"><span><span class="dot ${f.lv}"></span> ${esc(f.name)}</span><b>${f.gap!=null?chg(f.gap)+' obj':chg(f.evRec,evo)+' rec.'}</b></div>`).join('')}
+        <button type="button" class="btn sm" data-sec="ou" style="margin:10px 0 12px">Voir le détail</button></div>
+      <div class="aside" style="position:static;margin-bottom:12px"><div class="eb">✦ TENDANCE DU RECRUTEMENT</div><p class="sub">${M.focus} · écart cumulé vs N-1</p>${miniRec()}<button type="button" class="btn sm" data-sec="base" style="margin:10px 0 12px">Lire l’analyse</button></div>
       <div class="rg-card"><div class="eb">DASHBOARD RÉGALIEN</div><b style="font-size:15px">Programme Club</b><p>Le socle certifié : tous les KPI du programme et leurs calculs.</p>
-        <div>${[['Poids CA encartés',pct(k.poids_ca)],['Poids Débit encartés',pct(k.poids_debit)],['Foyers actifs',cnt(k.foyers_n)],['Recrues',cnt(k.recrues)]].map(x=>`<div class="kline"><span>${x[0]}</span><b>${x[1]}</b></div>`).join('')}</div>
         <button type="button" class="btn sm" data-rg="groupe">${icon('grid',15)}Ouvrir le dashboard</button></div>
     </div></div>`;
   document.querySelector('.nav[data-go="brief"] .badge').textContent=A.signals.length;
@@ -675,47 +766,57 @@ function hyps(){const {k}=M,H=[];
   if(A.prixE&&A.artE){const c=Math.abs(A.prixE.v)>Math.abs(A.artE.v)*0.5;H.push([c?'c':'r',c?'Confirmée':'Rejetée','Un effet prix',dmeur(A.prixE.v),`Le prix moyen évolue de ${evo(k.ev_prix_e)} (${dmeur(A.prixE.v)}), contre ${dmeur(A.artE.v)} pour le nombre d’articles.`,'KPI Équation commerciale']);}
   {const c=k.ev_ca_e<k.ev_ca_ne;H.push([c?'c':'r',c?'Confirmée':'Rejetée','Une désaffection pour le programme',`CA encartés ${evo(k.ev_ca_e)}`,`CA encartés ${evo(k.ev_ca_e)} contre ${evo(k.ev_ca_ne)} pour les non-encartés. ${A.actBest?`${A.actBest.name} : dépense ${evo(A.actBest.evd)}.`:''}`,'KPI Équation commerciale · Valeur client']);}
   const order={c:0,pa:1,r:2};return H.sort((a,b)=>order[a[0]]-order[b[0]]);}
-function recos(){const {k}=M,R=[];
-  if(k.ev_recrues<0||A.recWorstF.ev_rec<0)R.push([`Relancer l’enrôlement en ${A.recWorstF.name}`,`Diagnostic des magasins en plus forte baisse (${A.magRFlop.slice(0,3).map(m=>m.name).join(', ')}), puis renfort de l’adhésion App en caisse.`,'Dir. Opérations · magasins','2 semaines','Recrutement au niveau N-1','Créer une alerte recrutement']);
-  const P=[...M.fs].filter(f=>f.poids_debit_obj!=null).sort((a,b)=>(a.poids_debit-a.poids_debit_obj)-(b.poids_debit-b.poids_debit_obj))[0];
-  if(P&&P.poids_debit<P.poids_debit_obj)R.push([`Encarter le trafic ${P.name}`,`Proposer systématiquement le scan de la carte ou de l’App en caisse ${P.name}.`,`Dir. ${P.name}`,'6 semaines',`Poids Débit ${P.name} vers ${pct(P.poids_debit_obj,1)}`,'Partager aux magasins']);
-  if(k.ev_panier_e<0)R.push(['Remplir le panier des encartés',`Mécaniques d’avantages à seuil et ventes croisées sur les ${A.segBig.name.toLowerCase()}. La baisse vient surtout ${Math.abs(A.artE?A.artE.v:0)>Math.abs(A.prixE?A.prixE.v:0)?'des articles':'du prix'}.`,'Marketing CRM','4 semaines','À chiffrer','Chiffrer avec TTMD']);
-  R.push([`Réactiver les ${A.segWorst.name.toLowerCase()}, pousser ${A.actBest?A.actBest.name:'les activations'}`,`Ciblage CRM des ${A.segWorst.name.toLowerCase()} avant leur départ.${A.actBest?` Proposer ${A.actBest.name} aux membres les plus actifs (× ${nf(A.actBest.mult,2)} de valeur).`:''}`,'Marketing fidélité','6 semaines','À chiffrer','Partager au CRM']);
+function recos(){const {k}=M,R=[],P=A.P||{};
+  if(k.ev_recrues<0||A.recWorstF.ev_rec<0)R.push([`Relancer l’enrôlement en ${A.recWorstF.name}`,`Diagnostic des magasins en plus forte baisse (${A.magRFlop.slice(0,3).map(m=>m.name).join(', ')}), puis renfort de l’adhésion App en caisse et challenge hôtes·ses de caisse.`,'Dir. Opérations · magasins','2 semaines','Recrutement au niveau N-1','Créer une alerte recrutement',P.recNeed>0?`${cnt(P.recNeed)} foyers à compenser`:`${evo(A.recWorstF.ev_rec)} en ${A.recWorstF.name}`]);
+  const F=[...M.fs].filter(f=>f.poids_debit_obj!=null).sort((a,b)=>(a.poids_debit-a.poids_debit_obj)-(b.poids_debit-b.poids_debit_obj))[0];
+  if(F&&F.poids_debit<F.poids_debit_obj)R.push([`Encarter le trafic ${F.name}`,`Scan systématique de la carte ou de l’App en caisse ${F.name}, en commençant par les ${M.ax} les plus éloignées de l’objectif (${A.dtWorst.slice(0,2).map(d=>d.name).join(', ')}).`,`Dir. ${F.name}`,'6 semaines',`Poids Débit ${F.name} vers ${pct(F.poids_debit_obj,1)}`,'Partager aux magasins',`${pts(F.poids_debit-F.poids_debit_obj)} à combler`]);
+  if(k.ev_panier_e<0)R.push(['Remplir le panier des encartés',`Mécaniques d’avantages à seuil et ventes croisées sur les ${A.segBig.name.toLowerCase()}. La baisse vient surtout ${Math.abs(A.artE?A.artE.v:0)>Math.abs(A.prixE?A.prixE.v:0)?'du nombre d’articles':'du prix moyen'}.`,'Marketing CRM','4 semaines','Panier au niveau N-1','Chiffrer avec TTMD',P.simPanier?`+1 € de panier = ${meur(P.simPanier)}`:'']);
+  if(A.solde<0||A.segWorst.ev<0)R.push([`Retenir les ${A.segWorst.name.toLowerCase()} avant leur départ`,`Ciblage CRM des foyers à risque (baisse de fréquence) avec une offre personnalisée.${P.valLost?` Un foyer perdu représente en moyenne ${eur(P.valLost,0)} de CA.`:''}`,'Marketing fidélité','4 semaines','Solde de foyers ≥ 0','Partager au CRM',P.caLost?`${meur(P.caLost)} de CA perdu`:'']);
+  if(A.actBest&&A.actBest.mult>1)R.push([`Faire basculer les membres vers ${A.actBest.name}`,`${A.actBest.name} dépense × ${nf(A.actBest.mult,2)} par rapport à ${M.ref.name}. Campagne d’activation ciblée sur les membres les plus actifs.`,'Marketing fidélité','6 semaines',`+1 pt de membres ${A.actBest.name}`,'Partager au CRM',P.simAct?`1 % de bascule = ${meur(P.simAct.v)}`:'']);
+  if(!R.length)R.push(['Maintenir la dynamique','Aucun indicateur sous son seuil d’alerte : sécuriser les leviers actuels et suivre la fréquence.','Marketing fidélité','4 semaines','Indicateurs stables','Créer une alerte','']);
   return R;}
 function renderDeep(){const {k}=M,F=A.F;
+  const P=A.P;
   const SECTIONS=[
-    {id:'performance',nav:'Performance',eb:'1 · Performance d’ensemble',title:k.poids_ca>=k.poids_ca_n1?'Le programme gagne du poids dans le CA':'Le programme perd du poids dans le CA',q:'poids',
+    {id:'synthese',nav:'Synthèse',eb:'0 · Tableau de bord du responsable',title:`${P.pil.filter(p=>p[1]==='ok').length} piliers sur 5 dans la cible`,q:'poids',
+     prose:[`Lecture ${M.label}, encartés, vs N-1 et vs objectif. Les pastilles signalent un indicateur en recul ou sous l’objectif.`],html:scorecard(),figs:[]},
+    {id:'enjeux',nav:'Valeur en jeu',eb:'1 · Valeur en jeu',title:P.gapCAeur>0?`${meur(P.gapCAeur)} de CA encarté à aller chercher`:'Ce que vaut chaque levier en euros',q:'poids',
+     prose:[`Ces montants traduisent les écarts en euros pour arbitrer les priorités. Les simulations sont des ordres de grandeur, à hypothèse affichée, et non des prévisions.`],html:enjeux(),figs:[]},
+    ...(P.H&&P.H.rows&&P.H.rows.length>2?[{id:'trajectoire',nav:'Trajectoire',eb:'2 · Trajectoire',title:P.mom&&P.mom.trDb!=null?`Poids Débit ${P.mom.trDb>=0?'en hausse':'en baisse'} de ${pts(Math.abs(P.mom.trDb))} sur ${P.mom.w} périodes`:'Trajectoire du poids Débit',q:'poids',
+     prose:[P.mom?`Vs ${esc(P.mom.prev)} : poids CA ${pts(P.mom.dCA)}, poids Débit ${pts(P.mom.dDb)}, évolution du CA encarté ${pts(P.mom.dEv)}.${P.mom.nGap?` ${P.mom.under} période${P.mom.under>1?'s':''} sur ${P.mom.nGap} sous l’objectif${P.mom.runUnder?`, dont les ${P.mom.runUnder} dernières`:''}.`:''}`:'',
+       ...histInsights(P.H).map(x=>`<b>${x[0]}.</b> ${x[1]}`)],html:trajChart(),figs:[]}]:[]),
+    {id:'performance',nav:'Performance',eb:'3 · Performance d’ensemble',title:k.poids_ca>=k.poids_ca_n1?'Le programme gagne du poids dans le CA':'Le programme perd du poids dans le CA',q:'poids',
      prose:[`En ${M.label}, les encartés réalisent <b>${meur(k.ca_e)}</b> de CA, soit <b>${evo(k.ev_ca_e)}</b> vs N-1, quand les non-encartés ${verb(k.ev_ca_ne)} de ${evo(k.ev_ca_ne)}. Leur poids dans le CA atteint <b>${pct(k.poids_ca)}</b> (${pts(k.poids_ca-k.poids_ca_n1)})${A.gapCA!=null?`, à ${pts(A.gapCA)} de l’objectif`:''}.`,
        `Côté trafic, les encartés font <b>${pct(k.poids_debit)} des passages</b> (${pts(k.poids_debit-k.poids_debit_n1)} vs N-1${A.gapDebit!=null?`, <b>${pts(A.gapDebit)} vs objectif</b>`:''}).`,
        `Par format, le CA encarté évolue de ${M.fs.map(f=>`<b>${evo(f.ev_ca_e)}</b> en ${f.name}`).join(', ')}.`],figs:['poids','evol']},
-    {id:'moteurs',nav:'Moteurs',eb:'2 · Moteurs de la croissance',title:`Le CA encarté est porté par ${A.pos.name.toLowerCase()}`,q:'eqc',
+    {id:'moteurs',nav:'Moteurs',eb:'4 · Moteurs de la croissance',title:`Le CA encarté est porté par ${A.pos.name.toLowerCase()}`,q:'eqc',
      prose:[`L’écart de ${dmeur(A.caDiff)} se décompose ainsi : ${M.eqcE.map(e=>`${e.name.toLowerCase()} <b>${dmeur(e.v)}</b>`).join(', ')}.`,
        `Les encartés sont ${cnt(k.clients_e)} (${evo(k.ev_clients_e)}), viennent ${dec(k.freq_e)} fois (${evo(k.ev_freq_e)}) pour un panier de <b>${eur(k.panier_e)}</b> (${evo(k.ev_panier_e)}), ${dec(k.articles_e)} articles (${evo(k.ev_articles_e)}) à ${eur(k.prix_e)} (${evo(k.ev_prix_e)}). Chez les non-encartés, le panier évolue de ${evo(k.ev_panier_ne)}.`,
        `Par segment (${M.per}), les <b>${A.segBest.name.toLowerCase()}</b> évoluent de <b>${evo(A.segBest.ev)}</b> et les <b>${A.segWorst.name.toLowerCase()}</b> de <b>${evo(A.segWorst.ev)}</b>.`],figs:['wf','seg']},
-    {id:'base',nav:'Base clients',eb:'3 · Santé de la base clients',title:A.solde>=0?'La base progresse, portée par le recrutement':'La base de porteurs diminue',q:'base',
+    {id:'base',nav:'Base clients',eb:'5 · Santé de la base clients',title:A.solde>=0?'La base progresse, portée par le recrutement':'La base de porteurs diminue',q:'base',
      prose:[`Sur la période, le programme gagne <b>${cnt(k.foyers_gagnes)}</b> foyers et en perd <b>${cnt(k.foyers_perdus)}</b> : solde de <b>${S(A.solde)}${cnt(Math.abs(A.solde))}</b> (${cnt(k.foyers_n)} actifs).`,
        `Les foyers constants dépensent ${eur(k.cst_depense_n)} contre ${eur(k.cst_depense_n1)} en N-1 (${evo(ev(k.cst_depense_n,k.cst_depense_n1))}).`,
        `Le recrutement ${verb(k.ev_recrues)} de <b>${evo(k.ev_recrues)}</b> (${cnt(k.recrues)} recrues).${A.wFirst?` En ${M.focus}, l’écart cumulé passe de ${evo(A.wFirst.v)} en ${A.wFirst.name} à <b>${evo(A.wLast.v)}</b> en ${A.wLast.name}.`:''}`],figs:['rec','solde']},
-    {id:'causes',nav:'Pourquoi',eb:'4 · Causes racines',title:'Hypothèses testées sur les KPI du programme',q:'mix',prose:['Chaque hypothèse est confirmée, partielle ou rejetée selon des règles fixes appliquées aux KPI ; aucun chiffre n’est estimé.'],hyps:hyps(),figs:['mix']},
-    {id:'ou',nav:'Où',eb:'5 · Où agir',title:`${A.dtUnder.length} ${M.ax} ${M.focus} sur ${M.dts.length} sous l’objectif`,q:'dt',
+    {id:'causes',nav:'Pourquoi',eb:'6 · Causes racines',title:'Hypothèses testées sur les KPI du programme',q:'mix',prose:['Chaque hypothèse est confirmée, partielle ou rejetée selon des règles fixes appliquées aux KPI ; aucun chiffre n’est estimé.'],hyps:hyps(),figs:['mix']},
+    {id:'ou',nav:'Où',eb:'7 · Où agir',title:`${A.dtUnder.length} ${M.ax} ${M.focus} sur ${M.dts.length} sous l’objectif`,q:'dt',
      prose:[`En ${M.focus}, le poids Débit encarté atteint <b>${pct(F.poids_debit)}</b> (${pts(F.poids_debit-F.poids_debit_n1)} vs N-1${F.poids_debit_obj!=null?`, ${pts(F.poids_debit-F.poids_debit_obj)} vs objectif`:''}). Les ${M.ax} les plus éloignées de l’objectif : ${A.dtWorst.slice(0,3).map(d=>`<b>${d.name}</b> (${pts(d.dobj)})`).join(', ')}.`,
-       `Recrutement : ${A.dtRecWorst.name} est la maille ${M.ax} la plus en recul (${evo(A.dtRecWorst.ev)}), ${A.dtRecBest.name} la plus dynamique (${evo(A.dtRecBest.ev)}). Magasins en plus forte baisse : ${A.magRFlop.slice(0,3).map(m=>`${m.name} (${evo(m.ev)})`).join(', ')}.`],figs:['dt','regions']},
-    {id:'leviers',nav:'Leviers',eb:'6 · Leviers d’engagement',title:A.actBest?`${A.actBest.name} crée le plus de valeur`:'Leviers d’engagement',q:'val',
+       `Recrutement : ${A.dtRecWorst.name} est la maille ${M.ax} la plus en recul (${evo(A.dtRecWorst.ev)}), ${A.dtRecBest.name} la plus dynamique (${evo(A.dtRecBest.ev)}). Magasins en plus forte baisse : ${A.magRFlop.slice(0,3).map(m=>`${m.name} (${evo(m.ev)})`).join(', ')}.`],html:prioFmt()+(prioDT()?'<h3 style="font-size:15px;margin:18px 0 6px">'+M.ax+' '+M.focus+' les plus éloignées de l’objectif</h3>'+prioDT():''),figs:['dt','regions']},
+    {id:'leviers',nav:'Leviers',eb:'8 · Leviers d’engagement',title:A.actBest?(A.actBest.mult>1?`${A.actBest.name} crée le plus de valeur`:`Aucune activation ne dépasse ${M.ref.name} ; ${A.actBest.name} s’en rapproche le plus`):'Leviers d’engagement',q:'val',
      prose:[A.actBest?`${A.actBest.name} : <b>${nf(A.actBest.depense,0)} €</b> de dépense moyenne, <b>× ${nf(A.actBest.mult,2)}</b> par rapport à ${M.ref.name} (${nf(M.ref.depense,0)} €).`:'',
        A.mixUp?`Mode d’achat : ${A.mixUp.name} ${pts(A.mixUp.d)}, ${A.mixDown.name} ${pts(A.mixDown.d)}.`:''],figs:['valeur','mixite']},
-    {id:'actions',nav:'Actions',eb:'7 · Recommandations',title:'Actions proposées, par ordre d’urgence',q:'rec',prose:['Les porteurs, horizons et cibles sont des propositions à valider avec le métier ; les impacts sont à chiffrer.'],recos:recos(),figs:[]}];
+    {id:'actions',nav:'Actions',eb:'9 · Plan d’action',title:'Actions proposées, par ordre d’urgence',q:'rec',prose:['Porteurs, horizons et cibles sont des propositions à valider avec le métier. L’impact indiqué découle directement des KPI ou d’une simulation à hypothèse affichée.'],recos:recos(),figs:[]}];
   $('#v-deep').innerHTML=`
     <button type="button" class="back" data-go="brief">${icon('left')} Ma journée</button>
     <div class="crumb">Analyse approfondie · ${M.label} · encartés</div>
     <h1 class="h1" style="max-width:none">Comprendre la performance du Programme Club</h1>
     <p class="byline">De la performance d’ensemble aux causes racines et aux actions</p>
     <div class="toc"><span class="l">Sommaire</span>${SECTIONS.map((s,i)=>`<button type="button" data-sec="${s.id}">${i+1}. ${s.nav}</button>`).join('')}</div>
-    ${SECTIONS.map(s=>`<section class="asec" id="s-${s.id}"><div class="asec-h"><div><div class="eb">${s.eb}</div><h2>${s.title}</h2></div><button type="button" class="ask-btn" data-q="${s.q}">${icon('spark',15)}Demander à TTMD</button></div>
-      <div class="prose">${s.prose.filter(Boolean).map(p=>`<p>${p}</p>`).join('')}</div>
+    ${SECTIONS.map((s,si)=>`<section class="asec" id="s-${s.id}"><div class="asec-h"><div><div class="eb">${si+1} · ${s.eb.replace(/^\d+ · /,'')}</div><h2>${s.title}</h2></div><button type="button" class="ask-btn" data-q="${s.q}">${icon('spark',15)}Demander à TTMD</button></div>
+      <div class="prose">${s.prose.filter(Boolean).map(p=>`<p>${p}</p>`).join('')}</div>${s.html?`<div style="margin-top:14px">${s.html}</div>`:''}
       ${s.hyps?`<div class="hyps">${s.hyps.map(h=>`<div class="hyp ${h[0]==='r'?'rej':''}"><div class="hyp-h"><span class="st ${h[0]}">${h[1]}</span><b>${h[2]}</b><span class="imp ${h[0]==='r'?'z':''}">${h[3]}</span></div><p>${h[4]}</p><span class="s">Source : ${h[5]}</span></div>`).join('')}</div>`:''}
-      ${s.recos?s.recos.map((r,j)=>`<div class="reco"><span class="k">${j+1}</span><div><b>${r[0]}</b><p>${r[1]}</p><div class="meta"><span>Porteur : <b>${r[2]}</b></span><span>Horizon : <b>${r[3]}</b></span><span>Cible : <b>${r[4]}</b></span><button type="button" class="btn sm" ${r[5]==='Chiffrer avec TTMD'?'data-q="eqc"':''}>${r[5]}</button></div></div></div>`).join(''):''}
+      ${s.recos?s.recos.map((r,j)=>`<div class="reco"><span class="k">${j+1}</span><div><b>${r[0]}</b><p>${r[1]}</p><div class="meta"><span>Porteur : <b>${r[2]}</b></span><span>Horizon : <b>${r[3]}</b></span><span>Cible : <b>${r[4]}</b></span>${r[6]?`<span class="imp">${r[6]}</span>`:''}<button type="button" class="btn sm" ${r[5]==='Chiffrer avec TTMD'?'data-q="eqc"':''}>${r[5]}</button></div></div></div>`).join(''):''}
       ${s.figs.length?`<div class="figs">${s.figs.map(f=>figHtml(f)).join('')}</div>`:''}</section>`).join('')}
-    <div class="method"><b>Méthode et fiabilité.</b> ${M.label} vs N-1, encartés. ${MODE==='real'?'Chiffres lus dans la feuille PULSE_DATA du dashboard régalien Programme Club (Tableau Cloud), dans votre navigateur ; aucune donnée n’est envoyée ailleurs.':''} Les textes, signaux et hypothèses sont générés par des règles fixes à partir des KPI ; aucun chiffre n’est estimé.</div>`;
+    <div class="method"><b>Méthode et fiabilité.</b> ${M.label} vs N-1, encartés. ${MODE==='real'?'Chiffres lus dans les tables Pulse du dashboard Programme Club (Tableau Cloud), dans votre navigateur ; aucune donnée n’est envoyée ailleurs.':''} Les textes, signaux et hypothèses sont générés par des règles fixes à partir des KPI. Seules les lignes « Simulation » reposent sur une hypothèse, affichée à côté du montant.</div>`;
   bindCommon($('#v-deep'),'Analyse approfondie · Programme Club');drawFigs($('#v-deep'));
 }
 
@@ -802,7 +903,7 @@ function splash(ck){const inT=window.self!==window.top;['brief','deep','rg','his
   $('#v-brief').innerHTML=`<div class="splash" style="max-width:640px;margin:8vh auto 0;text-align:center"><div class="eb" style="font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--accent);text-transform:uppercase">Pulse · Programme Club</div>
    <h1 class="h1" style="margin:10px auto 10px;max-width:none">${inT?'Connexion aux données Programme Club':'Pulse s’ouvre dans Tableau Cloud'}</h1>
    <p class="byline" style="font-size:15px;line-height:1.6">${inT?(ck?'Le navigateur ne transmet pas la session Tableau Cloud à l’extension (cookies tiers bloqués). Autorisez les cookies tiers pour <b>[*.]online.tableau.com</b> dans les paramètres du navigateur, puis rechargez la page.':esc(MODE_MSG||'Initialisation…')+'<br>Pulse lit les chiffres certifiés du dashboard Programme Club avec vos droits Tableau.'):'Cette page ne contient aucune donnée. Ouvrez le dashboard <b>Pulse Programme Club</b> sur Tableau Cloud pour lire la performance du programme.'}</p></div>`;}
-function renderAll(){if(!M){splash();return;}figN=0;A=analyse();renderGbar();renderBrief();renderDeep();renderHist();if(curView==='rg')renderRG();else if(!$('#v-rg').hidden)renderRG();if(!['brief','deep','rg','hist'].some(x=>!$('#v-'+x).hidden))show('brief');$('#ttmd').hidden=true;}
+function renderAll(){if(!M){splash();return;}figN=0;A=analyse();A.P=pilot();renderGbar();renderBrief();renderDeep();renderHist();if(curView==='rg')renderRG();else if(!$('#v-rg').hidden)renderRG();if(!['brief','deep','rg','hist'].some(x=>!$('#v-'+x).hidden))show('brief');$('#ttmd').hidden=true;}
 
 document.querySelectorAll('.side .nav[data-go]').forEach(n=>n.addEventListener('click',()=>{if(n.dataset.go==='ttmd')openTT(null,{brief:'Ma journée',deep:'Analyse approfondie',rg:'Dashboard régalien'}[curView]+' · Programme Club');else show(n.dataset.go);}));
 $('#ttClose').addEventListener('click',()=>{$('#ttmd').hidden=true;setNav(curView);});
