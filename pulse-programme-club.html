@@ -328,6 +328,49 @@ table.t .r{text-align:right}
 .toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:10px;font-size:13.5px;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,.2);max-width:min(560px,calc(100vw - 32px))}
 .toast[hidden]{display:none}
 @media print{.side,.topbar,#gbar,.btns,.sig-act,.ask-btn,.toc,.back,.toast,#ttmd{display:none!important}body{background:#fff}.main{margin:0!important;padding:0!important}.asec,.panel,.signal,.briefcard,.dec{break-inside:avoid}}
+
+/* Diagnostic IA */
+.aidiag{position:relative;border-radius:18px;padding:22px 24px;margin:16px 0;background:linear-gradient(var(--surface),var(--surface)) padding-box,linear-gradient(120deg,var(--ia),var(--accent)) border-box;border:1.5px solid transparent;overflow:hidden}
+.aidiag::before{content:"";position:absolute;inset:0;background:radial-gradient(600px 160px at 0% 0%,var(--ia-soft),transparent 70%),radial-gradient(500px 160px at 100% 0%,var(--accent-soft),transparent 70%);pointer-events:none}
+.aidiag>*{position:relative}
+.ai-h{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+.ai-badge{display:inline-flex;gap:7px;align-items:center;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ia);background:var(--ia-soft);border-radius:999px;padding:5px 11px}
+.ai-meta{font-size:12.5px;color:var(--muted)} .ai-meta b{color:var(--ink)}
+.ai-title{font-size:22px;font-weight:700;margin-top:12px}
+.ai-verdict{font-size:16.5px;line-height:1.7;color:var(--ink-2);margin-top:8px;max-width:92ch;min-height:3.4em}
+.ai-verdict.typing::after{content:"▍";color:var(--ia);animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.ai-kpis{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.ai-kpis div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 14px;display:flex;gap:8px;align-items:baseline;font-size:13px;color:var(--muted)}
+.ai-kpis .n{font-size:20px;font-weight:800;color:var(--ink)}
+.ai-ask{display:flex;gap:8px;align-items:center;margin-top:16px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:6px 6px 6px 12px;color:var(--ia)}
+.ai-ask:focus-within{border-color:var(--ia);box-shadow:0 0 0 3px var(--ia-soft)}
+.ai-ask input{flex:1;border:0;background:transparent;font:inherit;font-size:14.5px;color:var(--ink);outline:none;min-width:0}
+.ai-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chipq{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:600;color:var(--ia)}
+.chipq:hover{border-color:var(--ia);background:var(--ia-soft)}
+.tree{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:10px 26px;margin-top:16px;overflow-x:auto;align-items:center}
+.tcol{display:flex;flex-direction:column;gap:10px;position:relative}
+.tcol+.tcol::before{content:"";position:absolute;left:-15px;top:10%;bottom:10%;border-left:2px solid var(--line)}
+.tn{border:1px solid var(--line);border-radius:12px;padding:9px 12px;background:var(--surface);display:flex;flex-direction:column;gap:1px;position:relative}
+.tcol+.tcol .tn::before{content:"";position:absolute;left:-15px;top:50%;width:14px;border-top:2px solid var(--line)}
+.tn .l{font-size:12px;color:var(--muted);font-weight:600} .tn .v{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums} .tn .s{font-size:12px;color:var(--muted)}
+.tn.neg .v{color:var(--neg)} .tn.pos .v{color:var(--accent)}
+.tn.crit{border:2px solid var(--neg);background:color-mix(in srgb,var(--neg) 8%,var(--surface))}
+.badge-c{position:absolute;top:-9px;right:8px;background:var(--neg);color:#fff;font-size:10.5px;font-weight:800;border-radius:6px;padding:1px 7px;text-transform:uppercase;letter-spacing:.04em}
+.inss{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.ins{border:1px solid var(--line);border-left:4px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;background:var(--surface)}
+.ins.neg{border-left-color:var(--neg)} .ins.opp{border-left-color:var(--ia)} .ins.pos{border-left-color:var(--accent)}
+.ins-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ins .rank{width:24px;height:24px;border-radius:7px;background:var(--surface-2);display:grid;place-items:center;font-size:12px;font-weight:800}
+.ins h3{font-size:16.5px;font-weight:700} .ins p{font-size:14.5px;color:var(--ink-2);line-height:1.6}
+.ins .why{font-size:13.5px;color:var(--muted)} .ins .why b{color:var(--ink-2)}
+.ins details summary{cursor:pointer;font-size:12.5px;font-weight:600;color:var(--accent)}
+.cf{font-size:11.5px;font-weight:700;border-radius:6px;padding:2px 8px}
+.cf.c{background:var(--accent-soft);color:var(--accent)} .cf.pa{background:var(--vig-soft);color:var(--vig)} .cf.r{background:var(--surface-2);color:var(--muted)}
+table.heat td.hm{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;border-radius:0}
+table.heat tr.grp td{border-bottom:2px solid var(--line)}
+@media (max-width:900px){.tree{grid-template-columns:repeat(4,minmax(150px,1fr))}}
 </style>
 </head>
 <body>
@@ -812,6 +855,153 @@ function bindExport(root){const w=root.querySelector('.expwrap');if(!w)return;co
   m.querySelectorAll('[data-exp]').forEach(x=>x.addEventListener('click',()=>{close();const a=x.dataset.exp;
     if(a==='pdf')expPdf();else if(a==='copy')expCopy();else if(a==='csv')expCsv();else if(a==='html'){dl(expName('html'),expHtml(),'text/html;charset=utf-8')?toast('Page HTML téléchargée.'):toast('Téléchargement bloqué par Tableau : utilisez « PDF » ou « Copier la synthèse ».');}}));}
 
+/* ===================== DIAGNOSTIC PULSE IA : moteur d'analyse (règles d'expert fidélité, calculées sur les tables) ===================== */
+const DG_F=['Groupe','Hyper','Market','Proxi','E-commerce'];
+const evv=(a,b)=>a!=null&&b?a/b-1:null;
+function dgSeries(){if(typeof TB==='undefined'||!TB||!TB.periode)return {};const enc=FILT.enc==='PASS'?'PASS':'Encarté',S={};
+  TB.periode.filter(r=>tBase(r)&&r.type_encartage===enc&&r._key&&r._key<=FILT.per).forEach(r=>{(S[r.enseigne]=S[r.enseigne]||[]).push(r);});
+  Object.values(S).forEach(a=>a.sort((x,y)=>x._key<y._key?-1:1));return S;}
+function linSlope(v){const p=v.map((y,i)=>[i,y]).filter(x=>x[1]!=null&&isFinite(x[1]));const n=p.length;if(n<3)return null;
+  const mx=p.reduce((a,x)=>a+x[0],0)/n,my=p.reduce((a,x)=>a+x[1],0)/n;let nu=0,de=0;p.forEach(([x,y])=>{nu+=(x-mx)*(y-my);de+=(x-mx)**2;});return de?nu/de:null;}
+function pearson(xs,ys){const p=xs.map((x,i)=>[x,ys[i]]).filter(([x,y])=>x!=null&&y!=null&&isFinite(x)&&isFinite(y));const n=p.length;if(n<6)return null;
+  const mx=p.reduce((a,x)=>a+x[0],0)/n,my=p.reduce((a,x)=>a+x[1],0)/n;let a=0,b=0,c=0;p.forEach(([x,y])=>{a+=(x-mx)*(y-my);b+=(x-mx)**2;c+=(y-my)**2;});return b&&c?{r:a/Math.sqrt(b*c),n}:null;}
+const persist=(arr,sign)=>{const v=arr.slice(-8).filter(x=>x!=null&&isFinite(x));return {k:v.filter(x=>Math.sign(x)===sign).length,n:v.length};};
+const confOf=(p,big)=>p&&p.n>=4?(p.k/p.n>=.75&&big?'Élevée':p.k/p.n>=.5?'Moyenne':'Faible'):(big?'Moyenne':'Faible');
+
+function diagnose(){const {k}=M,D={ins:[],tests:0},S=dgSeries(),G=(S.Groupe||[]),g=G[G.length-1]||{};D.S=S;
+  const T=(f)=>{D.tests++;try{const x=f();if(x)D.ins.push(x);}catch(e){console.warn('[Pulse] test',e);}};
+  const caTot=(k.ca_e||0)+(k.ca_ne||0);
+  /* --- 1. décomposition du poids CA : dynamique encartés vs non-encartés --- */
+  {const E=k.ca_e,E1=k.ca_e_n1,N=k.ca_ne,N1=k.ca_ne_n1;if(E&&E1&&N&&N1){const p=E/(E+N),p1=E1/(E1+N1),dE=E/(E+N1)-p1,dN=p-p1-dE;D.dp={p,p1,dE,dN};}}
+  /* --- 2. arbre des causes (Groupe, effets en €) --- */
+  {const eff=n=>(M.eqcE.find(e=>new RegExp(n,'i').test(e.name))||{}).v;const cl=eff('client'),fr=eff('fr[ée]quence'),pr=eff('prix'),ar=eff('article'),cx=eff('crois');
+    const pan=(pr||0)+(ar||0);D.tree={cl,fr,pr,ar,cx,pan,tot:(cl||0)+(fr||0)+pan+(cx||0)};
+    const lv1=[['clients',cl],['fréquence',fr],['panier',pan]].filter(x=>x[1]!=null).sort((a,b)=>a[1]-b[1]);D.tree.worst=lv1[0]?lv1[0][0]:null;
+    D.tree.worst2=D.tree.worst==='panier'?((ar??0)<(pr??0)?'articles':'prix'):null;}
+  /* --- 3. matrice formats × leviers --- */
+  D.mat=DG_F.map(f=>{const a=S[f]||[],r=a[a.length-1];if(!r)return null;
+    const effs={Clients:r.effet_clients,Fréquence:r.effet_freq,Prix:r.effet_prix,Articles:r.effet_articles};const worst=Object.entries(effs).filter(x=>x[1]!=null).sort((x,y)=>x[1]-y[1])[0];
+    return {f,gap:r.poids_ca_obj!=null?r.poids_ca-r.poids_ca_obj:null,gapDb:r.poids_debit_obj!=null?r.poids_debit-r.poids_debit_obj:null,ca_e:r.evol_ca_e??evv(r.ca_e_n,r.ca_e_n1),ca_ne:r.evol_ca_ne??evv(r.ca_ne_n,r.ca_ne_n1),
+      cli:evv(r.clients_n,r.clients_n1),freq:evv(r.freq_n,r.freq_n1),pan:evv(r.panier_n,r.panier_n1),art:evv(r.articles_n,r.articles_n1),prix:evv(r.prix_n,r.prix_n1),rec:r.evol_recrues??evv(r.recrues_n,r.recrues_n1),
+      worst:worst&&worst[1]<0?worst:null,caE:r.ca_e_n,caT:r.ca_tot_n||((r.ca_e_n||0)+(r.ca_ne_n||0))};}).filter(Boolean);
+  const hist=key=>G.map(r=>r[key]);
+  /* ===== TESTS ===== */
+  // T1 le programme est-il différenciant ?
+  T(()=>{const d=k.ev_ca_e-k.ev_ca_ne;if(d==null||!isFinite(d))return null;const p=persist(G.map(r=>(r.evol_ca_e??evv(r.ca_e_n,r.ca_e_n1))-(r.evol_ca_ne??evv(r.ca_ne_n,r.ca_ne_n1))),Math.sign(d));
+    return {t:d>=0?'pos':'neg',w:Math.abs(d)*40,dom:'Performance',q:'poids',sec:'performance',title:d>=0?`Le programme surperforme le marché interne de ${pts(d)}`:`Les encartés croissent moins vite que les non-encartés (${pts(d)})`,
+      txt:`CA encartés ${evo(k.ev_ca_e)} contre ${evo(k.ev_ca_ne)} pour les non-encartés.${D.dp?` Sur l’évolution du poids CA (${pts(D.dp.p-D.dp.p1)}), ${pts(D.dp.dE)} viennent de la dynamique des encartés et ${pts(D.dp.dN)} de celle des non-encartés.`:''}`,
+      why:d>=0?'Un écart positif prouve que la carte crée du chiffre incrémental au-delà de la tendance magasin.':'Si les encartés font moins bien que les clients anonymes, le programme ne génère plus de comportement différenciant : l’avantage perçu s’érode.',
+      imp:caTot?`${dmeur(d*k.ca_e_n1)} vs une croissance au rythme des non-encartés`:'',conf:confOf(p,Math.abs(d)>0.005),proof:`Écart de croissance du même signe sur ${p.k}/${p.n} dernières périodes.`};});
+  // T2 cause racine de l'équation commerciale
+  T(()=>{const t=D.tree;if(!t.worst)return null;const v=t.worst==='clients'?t.cl:t.worst==='fréquence'?t.fr:t.pan;if(v==null||v>=0)return null;
+    const sub=t.worst==='panier'?` Dans le panier, ${t.worst2==='articles'?`c’est le <b>nombre d’articles</b> qui pèse (${dmeur(t.ar)}) ; le prix ${t.pr>=0?'compense':'aggrave'} (${dmeur(t.pr)})`:`c’est le <b>prix moyen</b> qui pèse (${dmeur(t.pr)})`}.`:'';
+    const kk={clients:'ev_clients_e',fréquence:'ev_freq_e',panier:'ev_panier_e'}[t.worst];
+    const p=persist(G.map(r=>t.worst==='clients'?r.effet_clients:t.worst==='fréquence'?r.effet_freq:(r.effet_prix||0)+(r.effet_articles||0)),-1);
+    return {t:'neg',w:Math.abs(v)/Math.max(Math.abs(t.tot),1)*3+1,dom:'Cause racine',q:'eqc',sec:'moteurs',title:`Cause racine : ${t.worst}${t.worst2?` (${t.worst2})`:''} des encartés`,
+      txt:`Sur un écart de CA encarté de ${dmeur(t.tot)}, l’effet ${t.worst} coûte <b>${dmeur(v)}</b> (${evo(k[kk])} vs N-1).${sub}`,
+      why:{clients:'Moins de porteurs actifs : problème d’acquisition ou de réactivation, pas de valeur par client.',fréquence:'Les porteurs viennent moins souvent : la carte ne déclenche plus la visite (offres, communication, concurrence de proximité).',panier:'Les porteurs viennent mais achètent moins : le programme ne pousse plus l’élargissement de panier.'}[t.worst],
+      imp:dmeur(v),conf:confOf(p,true),proof:`Effet négatif sur ${p.k}/${p.n} dernières périodes. Décomposition : clients ${dmeur(t.cl)}, fréquence ${dmeur(t.fr)}, articles ${dmeur(t.ar)}, prix ${dmeur(t.pr)}.`};});
+  // T3 inflation qui masque un recul du volume
+  T(()=>{if(!(k.ev_prix_e>0&&k.ev_articles_e<0))return null;const p=persist(G.map(r=>evv(r.articles_n,r.articles_n1)),-1);
+    return {t:'neg',w:2.2,dom:'Panier',q:'eqc',sec:'moteurs',title:'Le prix masque un recul des volumes',txt:`Prix moyen ${evo(k.ev_prix_e)} mais <b>${evo(k.ev_articles_e)} d’articles par panier</b>. Sans effet prix, le panier encarté reculerait.`,
+      why:'Une croissance portée par l’inflation n’est pas de la fidélité : les porteurs arbitrent déjà leurs volumes et peuvent fractionner leurs achats chez la concurrence.',imp:A.artE?dmeur(A.artE.v)+' d’effet articles':'',conf:confOf(p,Math.abs(k.ev_articles_e)>0.01),proof:`Articles par panier en baisse sur ${p.k}/${p.n} périodes.`};});
+  // T4 prime de fidélité (panier encarté / non encarté)
+  T(()=>{const r=k.panier_e&&k.panier_ne?k.panier_e/k.panier_ne:null,r1=k.panier_e_n1&&k.panier_ne_n1?k.panier_e_n1/k.panier_ne_n1:null;if(!r||!r1)return null;const d=r-r1;
+    return {t:d>=0?'pos':'neg',w:Math.abs(d)*8+0.5,dom:'Valeur',q:'eqc',sec:'moteurs',title:`Prime de panier encarté : × ${nf(r,2)} (${d>=0?'+':'−'}${nf(Math.abs(d),2)} vs N-1)`,
+      txt:`Un panier encarté vaut ${eur(k.panier_e)} contre ${eur(k.panier_ne)} pour un non-encarté.`,why:d>=0?'La carte concentre les gros paniers : la valeur du programme se renforce.':'L’écart de panier se resserre : la carte attire moins les paniers de courses complets.',imp:'',conf:Math.abs(d)>0.05?'Moyenne':'Faible',proof:`× ${nf(r1,2)} en N-1.`};});
+  // T5 qualité du renouvellement de la base
+  T(()=>{const P=A.P;if(!P||!P.won||!P.lost||!P.caGain||!P.caLost)return null;const vg=P.caGain/P.won,vp=P.caLost/P.lost,ratio=vg/vp;
+    return {t:ratio<0.9?'neg':'pos',w:ratio<0.9?(1-ratio)*6+1:0.6,dom:'Base clients',q:'base',sec:'base',title:ratio<0.9?`Vous remplacez des foyers à ${eur(vp,0)} par des foyers à ${eur(vg,0)}`:'Les nouveaux foyers valent autant que ceux qui partent',
+      txt:`${cnt(P.won)} foyers gagnés (${eur(vg,0)} de CA moyen) pour ${cnt(P.lost)} perdus (${eur(vp,0)}). Taux de conservation : ${P.retention!=null?pct(P.retention,1):'—'}.`,
+      why:ratio<0.9?'Même à solde de foyers nul, la base se dévalorise : il faut cibler la rétention des foyers à forte valeur, pas seulement le volume de recrues.':'Le renouvellement préserve la valeur de la base.',
+      imp:`${dmeur(P.caNet)} de balance de valeur`,conf:'Moyenne',proof:`Ratio de valeur gagnés / perdus : ${nf(ratio,2)}.`};});
+  // T6 trajectoire vers l'objectif (projection linéaire)
+  T(()=>{const gap=G.map(r=>r.poids_debit_obj!=null&&r.poids_debit!=null?r.poids_debit-r.poids_debit_obj:null).slice(-8);const s=linSlope(gap),cur=gap[gap.length-1];if(s==null||cur==null)return null;
+    let txt,t;if(cur>=0){t='pos';txt=`Poids Débit au-dessus de l’objectif (${pts(cur)}), tendance ${s>=0?'favorable':'défavorable'} de ${pts(s,2)} par période.`;}
+    else if(s>0){const n=Math.ceil(-cur/s);t=n<=8?'opp':'neg';txt=`Écart actuel ${pts(cur)} ; il se réduit de ${pts(s,2)} par période. <b>Au rythme actuel, objectif atteint dans ${n} période${n>1?'s':''}</b>.`;}
+    else if(Math.abs(s)<0.0005){t='neg';txt=`Écart actuel ${pts(cur)} et <b>il ne se réduit pas</b> sur les dernières périodes : sans action, l’objectif ne sera pas atteint.`;}
+    else{t='neg';txt=`Écart actuel ${pts(cur)} et <b>il se creuse de ${pts(Math.abs(s),2)} par période</b> : sans action, l’objectif ne sera pas atteint.`;}
+    return {t,w:cur<0?2.5:0.8,dom:'Trajectoire',q:'poids',sec:'trajectoire',title:t==='pos'?'Objectif de poids Débit tenu':t==='opp'?'L’objectif de poids Débit est atteignable':s<=0.0005&&s>=-0.0005?'L’écart à l’objectif de poids Débit stagne':'L’objectif de poids Débit s’éloigne',txt,
+      why:'La projection prolonge la tendance des 8 dernières périodes : c’est un signal d’alerte précoce, pas une prévision.',imp:A.P&&A.P.gapDbPass>0?`${cnt(A.P.gapDbPass)} passages encartés manquants`:'',conf:gap.filter(v=>v!=null).length>=6?'Moyenne':'Faible',proof:`Pente calculée sur ${gap.filter(v=>v!=null).length} périodes.`};});
+  // T7 rupture de tendance (z-score)
+  T(()=>{const v=G.map(r=>r.evol_ca_e??evv(r.ca_e_n,r.ca_e_n1)).filter(x=>x!=null&&isFinite(x));if(v.length<6)return null;const x=v[v.length-1],h=v.slice(-13,-1),m=h.reduce((a,b)=>a+b,0)/h.length,sd=Math.sqrt(h.reduce((a,b)=>a+(b-m)**2,0)/h.length);
+    if(!sd)return null;const z=(x-m)/sd;if(Math.abs(z)<1.8)return null;
+    return {t:z<0?'neg':'pos',w:Math.abs(z),dom:'Anomalie',q:'poids',sec:'trajectoire',title:`Rupture détectée : croissance du CA encarté ${z<0?'anormalement basse':'anormalement haute'}`,txt:`${evo(x)} sur la dernière période contre ${evo(m)} en moyenne sur les ${h.length} précédentes (écart de ${nf(Math.abs(z),1)} écarts-types).`,
+      why:'Un écart de cette ampleur signale un événement (opération commerciale, calendrier, incident, action concurrente) à qualifier avant de conclure.',imp:'',conf:Math.abs(z)>2.5?'Élevée':'Moyenne',proof:`Moyenne ${evo(m)}, écart-type ${pts(sd)}.`};});
+  // T8 format qui décroche
+  T(()=>{const f=D.mat.filter(x=>x.f!=='Groupe'&&x.gap!=null).sort((a,b)=>a.gap-b.gap)[0];if(!f||f.gap>=0)return null;const rows=S[f.f]||[];const p=persist(rows.map(r=>r.poids_ca_obj!=null?r.poids_ca-r.poids_ca_obj:null),-1);
+    return {t:'neg',w:Math.abs(f.gap)*120+1,dom:'Format',q:'mix',sec:'ou',title:`${f.f} est le format le plus loin de son objectif (${pts(f.gap)})`,txt:`CA encartés ${evo(f.ca_e)} vs ${evo(f.ca_ne)} non encartés ; levier le plus pénalisant : <b>${f.worst?f.worst[0].toLowerCase()+' ('+dmeur(f.worst[1])+')':'—'}</b>. Recrutement ${evo(f.rec)}.`,
+      why:'Un format sous l’objectif tire tout le groupe vers le bas par effet de pondération ; c’est là qu’une action locale a le plus d’effet.',imp:f.caT?`${meur(-f.gap*f.caT)} de CA encarté manquant`:'',conf:confOf(p,true),proof:`Sous l’objectif ${p.k}/${p.n} dernières périodes.`};});
+  // T9 recrutement : tendance et format
+  T(()=>{const s=linSlope(hist('evol_recrues').slice(-8));const w=D.mat.filter(x=>x.f!=='Groupe'&&x.rec!=null).sort((a,b)=>a.rec-b.rec)[0];if(k.ev_recrues==null)return null;
+    const bad=k.ev_recrues<0||(s!=null&&s<-0.002);return {t:bad?'neg':'pos',w:bad?Math.abs(k.ev_recrues)*20+1.2:0.5,dom:'Acquisition',q:'rec',sec:'base',title:bad?`Le recrutement ${k.ev_recrues<0?'recule':'ralentit'}${w&&w.rec<0?`, surtout en ${w.f}`:''}`:'Le recrutement progresse',
+      txt:`${cnt(k.recrues)} recrues (${evo(k.ev_recrues)}).${s!=null?` Tendance sur 8 périodes : ${pts(s,2)} par période.`:''}${w?` Format le plus faible : ${w.f} (${evo(w.rec)}).`:''}`,
+      why:bad?'Moins de recrues aujourd’hui, c’est moins de porteurs actifs dans 6 à 12 mois : l’effet sur le poids encarté arrive avec retard.':'L’acquisition alimente la base.',imp:bad&&A.P&&A.P.recNeed>0?`${cnt(A.P.recNeed)} foyers à compenser`:'',conf:s!=null?'Moyenne':'Faible',proof:`Évolution du recrutement par format : ${D.mat.filter(x=>x.f!=='Groupe').map(x=>`${x.f} ${evo(x.rec)}`).join(', ')}.`};});
+  // T10 territoires : concentration et lien avec le recrutement
+  T(()=>{if(typeof TB==='undefined'||!TB||!TB.territoire)return null;const enc=FILT.enc==='PASS'?'PASS':'Encarté';
+    const dt=TB.territoire.filter(r=>tBase(r)&&r.type_encartage===enc&&r.axe==='DT'&&r.enseigne!=='Groupe'&&r.poids_debit_obj!=null&&r.poids_debit!=null).map(r=>({n:nice(r.valeur_axe),f:r.enseigne,gap:r.poids_debit-r.poids_debit_obj,w:r.nb_magasins||1,rec:evv(r.recrues_n,r.recrues_n1)}));
+    if(dt.length<4)return null;const neg=dt.filter(x=>x.gap<0).map(x=>({...x,c:-x.gap*x.w})).sort((a,b)=>b.c-a.c);const tot=neg.reduce((a,x)=>a+x.c,0);if(!tot)return null;
+    const top=Math.max(1,Math.ceil(dt.length*0.2)),share=neg.slice(0,top).reduce((a,x)=>a+x.c,0)/tot;const pr=pearson(dt.map(x=>x.gap),dt.map(x=>x.rec));D.terr={dt,neg,share,top,pr};
+    return {t:'neg',w:share*3+1,dom:'Territoires',q:'dt',sec:'ou',title:`${top} DT concentrent ${pct(share,0)} de l’écart à l’objectif`,txt:`${neg.length} DT sur ${dt.length} (tous formats) sont sous l’objectif de poids Débit. Les plus contributrices, pondérées par le nombre de magasins : ${neg.slice(0,3).map(x=>`<b>${x.n} ${x.f}</b> (${pts(x.gap)})`).join(', ')}.${pr&&Math.abs(pr.r)>=0.35?` <b>Lien avec le recrutement : r = ${nf(pr.r,2)}</b> — ${pr.r>0?'les DT qui recrutent moins sont aussi celles qui perdent du poids encarté.':'le retard ne s’explique pas par le recrutement.'}`:''}`,
+      why:share>0.5?'L’écart est concentré : un plan ciblé sur quelques DT suffit à rattraper l’essentiel.':'L’écart est diffus : il faut un levier national (offre, communication), pas un plan local.',imp:'',conf:dt.length>=10?'Élevée':'Moyenne',proof:`Contribution = écart de poids × nombre de magasins. Corrélation calculée sur ${pr?pr.n:0} DT.`};});
+  // T11 segment le plus exposé
+  T(()=>{const s=[...M.segs].filter(x=>x.ev!=null).sort((a,b)=>(a.ev*a.poids)-(b.ev*b.poids))[0];if(!s||s.ev>=0)return null;
+    return {t:'neg',w:Math.abs(s.ev*s.poids)*30+0.8,dom:'Segments',q:'seg',sec:'moteurs',title:`Les ${s.name.toLowerCase()} décrochent (${evo(s.ev)}, ${pct(s.poids,0)} du CA)`,txt:`Effet clients ${evo(s.effet_clients)}, effet fréquence ${evo(s.effet_freq)}, effet panier ${evo(s.effet_panier)}. Le segment pèse ${pct(s.poids,0)} du CA encarté.`,
+      why:'Le segment au plus fort poids × recul est celui où une campagne de réactivation rapporte le plus.',imp:s.ca_n1?dmeur(s.ca-s.ca_n1):'',conf:'Moyenne',proof:`Segmentation ${esc(FILT.segm)} · ${M.per}.`};});
+  // T12 activation & digital
+  T(()=>{const b=A.actBest;if(!b||b.mult==null||!A.P||!A.P.simAct)return null;return {t:'opp',w:1.4,dom:'Activation',q:'val',sec:'leviers',title:`${b.name} : × ${nf(b.mult,2)} de dépense, levier de valeur`,txt:`${b.name} dépense ${nf(b.depense,0)} € par an contre ${nf(M.ref.depense,0)} € pour ${M.ref.name}. Faire basculer 1 % des membres représente ${meur(A.P.simAct.v)}.`,
+    why:'L’activation (App, avantages, Pass) est le levier le plus rapide pour augmenter la valeur par porteur sans recruter.',imp:meur(A.P.simAct.v),conf:'Faible',proof:'Simulation : 1 % des membres × écart de dépense annuelle. Corrélation ≠ causalité : les plus actifs s’activent plus.'};});
+  T(()=>{if(!A.app||A.app.dg==null)return null;return {t:A.app.dg>=0?'pos':'neg',w:Math.abs(A.app.dg)*30+0.4,dom:'Digital',q:'rec',sec:'base',title:`Adhésion via l’App : ${pct(A.app.part_groupe,1)} (${pts(A.app.dg)})`,txt:`${A.carte?`Cartes physiques ${pct(A.carte.part_groupe,1)} (${pts(A.carte.dg)}). `:''}La bascule digitale ${A.app.dg>=0?'progresse':'recule'}.`,
+    why:'Un porteur recruté par l’App est joignable et activable dès l’adhésion : c’est un meilleur actif CRM.',imp:'',conf:'Moyenne',proof:'Part des recrues par canal d’adhésion, vs N-1.'};});
+  T(()=>{if(!A.mixUp)return null;const on=/online|multi/i.test(A.mixUp.name);return {t:on?'pos':'neg',w:0.6,dom:'Omnicanalité',q:'mix',sec:'leviers',title:`${A.mixUp.name} progresse (${pts(A.mixUp.d)})`,txt:`${A.mixDown.name} ${pts(A.mixDown.d)}.`,why:on?'Les foyers multicanaux dépensent plus et churnent moins.':'Les foyers se concentrent sur un seul canal : potentiel de cross-canal inexploité.',imp:'',conf:'Faible',proof:'Répartition des foyers par mode d’achat (12 mois).'};});
+  /* classement : négatifs d'abord, pondérés par la confiance */
+  const cw={Élevée:1.3,Moyenne:1,Faible:.7};D.ins.forEach(x=>{x.score=(x.w||1)*cw[x.conf]*(x.t==='neg'?1.6:x.t==='opp'?1.1:0.8);});D.ins.sort((a,b)=>b.score-a.score);
+  D.neg=D.ins.filter(x=>x.t==='neg');D.pos=D.ins.filter(x=>x.t==='pos');D.opp=D.ins.filter(x=>x.t==='opp');
+  D.nPer=G.length;return D;}
+
+/* ---------- rendu ---------- */
+const CONF_C={Élevée:'c',Moyenne:'pa',Faible:'r'};
+function dgVerdict(D){const {k}=M,n=D.neg[0],p=D.pos[0],r=recos()[0];
+  const a=`Sur ${M.label}, le CA des encartés ${verb(k.ev_ca_e)} de ${evo(k.ev_ca_e)} et le poids CA atteint ${pct(k.poids_ca,1)}${A.gapCA!=null?` (${pts(A.gapCA)} vs objectif)`:''}.`;
+  const lc=x=>{x=String(x).replace(/<[^>]+>/g,'');return x.charAt(0).toLowerCase()+x.slice(1);};
+  const b=n?` Point de vigilance principal : ${lc(n.title.replace(/^Cause racine : /,'la cause racine est '))}.`:' Aucun signal négatif majeur.';
+  const c=p?` Point d’appui : ${lc(p.title)}.`:'';
+  const d=r?` Priorité : ${lc(r[0])}.`:'';return a+b+c+d;}
+function treeHtml(D){const t=D.tree,{k}=M;if(!t||t.tot==null)return '';const crit=x=>t.worst===x||t.worst2===x;
+  const node=(l,v,sub,key,lvl)=>`<div class="tn ${v!=null&&v<0?'neg':'pos'} ${crit(key)?'crit':''}" style="--lvl:${lvl}"><span class="l">${l}</span><span class="v">${v==null?'—':dmeur(v)}</span>${sub?`<span class="s">${sub}</span>`:''}${crit(key)?'<span class="badge-c">cause racine</span>':''}</div>`;
+  return `<div class="tree">
+    <div class="tcol">${node('Poids CA encartés',null,`${pts(k.poids_ca-k.poids_ca_n1)} vs N-1${A.gapCA!=null?` · ${pts(A.gapCA)} obj`:''}`,'root',0).replace('<span class="v">—</span>','<span class="v">'+pct(k.poids_ca,1)+'</span>')}</div>
+    <div class="tcol">${D.dp?`<div class="tn ${D.dp.dE<0?'neg':'pos'}"><span class="l">Dynamique encartés</span><span class="v">${pts(D.dp.dE,2)}</span><span class="s">CA ${evo(k.ev_ca_e)}</span></div><div class="tn ${D.dp.dN<0?'neg':'pos'}"><span class="l">Dynamique non-encartés</span><span class="v">${pts(D.dp.dN,2)}</span><span class="s">CA ${evo(k.ev_ca_ne)}</span></div>`:''}${A.mixD!=null?`<div class="tn ${A.mixD<0?'neg':'pos'}"><span class="l">Effet mix formats</span><span class="v">${pts(A.mixD,2)}</span><span class="s">sur le poids Débit</span></div>`:''}</div>
+    <div class="tcol">${node('Clients',t.cl,evo(k.ev_clients_e),'clients',2)}${node('Fréquence',t.fr,evo(k.ev_freq_e),'fréquence',2)}${node('Panier',t.pan,evo(k.ev_panier_e),'panier',2)}</div>
+    <div class="tcol">${node('Articles / panier',t.ar,evo(k.ev_articles_e),'articles',3)}${node('Prix moyen',t.pr,evo(k.ev_prix_e),'prix',3)}${t.cx!=null?node('Effets croisés',t.cx,'','x',3):''}</div></div>
+    <p class="src">Lecture de gauche à droite : le poids CA se décompose en dynamique encartés / non-encartés, puis le CA encarté en clients × fréquence × panier (articles × prix), en euros vs N-1. Le chemin surligné mène à la cause racine.</p>`;}
+function heatHtml(D){const cols=[['gap','Poids CA vs obj.',pts],['ca_e','CA encartés',evo],['ca_ne','CA non enc.',evo],['cli','Clients',evo],['freq','Fréquence',evo],['pan','Panier',evo],['art','Articles',evo],['prix','Prix',evo],['rec','Recrues',evo]];
+  const mx={};cols.forEach(([c])=>{mx[c]=Math.max(...D.mat.map(r=>Math.abs(r[c]||0)),1e-6);});
+  const cell=(v,c,f)=>{if(v==null||!isFinite(v))return '<td class="hm">—</td>';const a=Math.round(Math.min(Math.abs(v)/mx[c],1)*34+4);return `<td class="hm" style="background:color-mix(in srgb,${v<0?'var(--neg)':'var(--accent)'} ${a}%,var(--surface))">${f(v)}</td>`;};
+  return `<div class="tbl"><table class="t heat">${thead(['Format',...cols.map(c=>c[1]),'Levier le plus pénalisant'])}<tbody>${D.mat.map(r=>`<tr${r.f==='Groupe'?' class="grp"':''}><td><b>${esc(r.f)}</b></td>${cols.map(([c,,f])=>cell(r[c],c,f)).join('')}<td class="r">${r.worst?`<span class="tag vig">${r.worst[0]} ${dmeur(r.worst[1])}</span>`:'<span class="tag ok">aucun</span>'}</td></tr>`).join('')}</tbody></table></div>
+  <p class="src">Évolutions vs N-1 par format. Plus la couleur est intense, plus l’écart est fort dans sa colonne : orange = recul, bleu = progrès.</p>`;}
+function insCard(x,i){return `<article class="ins ${x.t}"><div class="ins-h"><span class="rank">${i+1}</span><span class="tag ${x.t==='neg'?'alert':x.t==='opp'?'opp':'ok'}">${x.t==='neg'?'À corriger':x.t==='opp'?'Opportunité':'Point fort'}</span><span class="tag dom2">${x.dom}</span><span class="cf ${CONF_C[x.conf]}" title="Confiance : persistance du signal sur les dernières périodes et ampleur">Confiance ${x.conf.toLowerCase()}</span>${x.imp?`<span class="impact ${x.t==='neg'?'':'p'}">${x.imp}</span>`:''}</div>
+  <h3>${x.title}</h3><p>${x.txt}</p><p class="why"><b>Pourquoi c’est important.</b> ${x.why}</p>
+  <details><summary>Voir la preuve</summary><p class="src">${x.proof}</p></details>
+  <div class="sig-act"><button type="button" class="btn sm" data-q="${x.q}">${icon('spark',14)}Creuser avec TTMD</button><button type="button" class="btn ghost sm" data-sec="${x.sec}">Voir le détail</button></div></article>`;}
+function diagHtml(){const D=A.D;if(!D)return '';const nT=A.O?A.O.nDt:0,nM=A.O?A.O.nMag:0;
+  const stats=[[D.tests,'tests d’analyse'],[M.formats.length,'formats'],[nT,'DT'],[nM,'magasins'],[D.nPer,'périodes'],[M.segs.length,'segments']].filter(x=>x[0]);
+  return `<section class="aidiag"><div class="ai-h"><span class="ai-badge">${icon('spark',15)}Diagnostic Pulse IA</span><span class="ai-meta">${stats.map(s=>`<b>${nf(s[0],0)}</b> ${s[1]}`).join(' · ')}</span></div>
+    <h2 class="ai-title">Ce qui se passe, pourquoi, et quoi faire</h2>
+    <p class="ai-verdict" data-type="${esc(dgVerdict(D))}"></p>
+    <div class="ai-kpis"><div><span class="n">${D.neg.length}</span><span>points à corriger</span></div><div><span class="n">${D.opp.length}</span><span>opportunités</span></div><div><span class="n">${D.pos.length}</span><span>points forts</span></div></div>
+    <form class="ai-ask" data-ask><span>${icon('spark',16)}</span><input type="text" placeholder="Posez une question : pourquoi le panier recule ? quelles DT prioriser ?" aria-label="Poser une question à Pulse"><button type="submit" class="btn primary sm">Analyser</button></form>
+    <div class="ai-chips">${D.ins.slice(0,4).map(x=>`<button type="button" class="chipq" data-q="${x.q}">${x.dom} : pourquoi ?</button>`).join('')}</div></section>
+  <section class="asec" id="s-arbre"><div class="asec-h"><div><div class="eb">Arbre des causes</div><h2>D’où vient l’écart de performance</h2></div><button type="button" class="ask-btn" data-q="eqc">${icon('spark',15)}Demander à TTMD</button></div>${treeHtml(D)}</section>
+  <section class="asec" id="s-insights"><div class="asec-h"><div><div class="eb">Insights classés par impact</div><h2>${D.ins.length} constats, du plus urgent au moins urgent</h2></div></div><div class="inss">${D.ins.map(insCard).join('')}</div></section>
+  <section class="asec" id="s-heat"><div class="asec-h"><div><div class="eb">Matrice formats × leviers</div><h2>Où et pourquoi chaque format décroche</h2></div><button type="button" class="ask-btn" data-q="mix">${icon('spark',15)}Demander à TTMD</button></div>${heatHtml(D)}</section>`;}
+function typeVerdict(root){const el=root.querySelector('.ai-verdict[data-type]');if(!el)return;const txt=el.dataset.type;
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches||diagTyped===txt){el.textContent=txt;return;}diagTyped=txt;let i=0;el.classList.add('typing');
+  const step=()=>{i=Math.min(txt.length,i+3);el.textContent=txt.slice(0,i);if(i<txt.length)setTimeout(step,12);else el.classList.remove('typing');};step();}
+let diagTyped='';
+function bindDiag(root){const f=root.querySelector('[data-ask]');if(!f)return;f.addEventListener('submit',e=>{e.preventDefault();const v=f.querySelector('input').value.trim();if(!v)return;
+  $('#ttmd').hidden=false;$('#ttInput').value=v;const form=$('#ttForm')||$('#ttInput').closest('form');if(form)form.requestSubmit?form.requestSubmit():form.dispatchEvent(new Event('submit',{cancelable:true}));f.querySelector('input').value='';});}
+
 function renderBrief(){const {k}=M,P=A.P,s0=A.signals[0],m=P.mom;
   const h1=`Le CA des encartés ${verb(k.ev_ca_e)} (${evo(k.ev_ca_e)})${s0&&s0.lv>=2?`, ${({Recrutement:'mais le recrutement '+(k.ev_recrues<0?'recule':'ralentit en '+A.recWorstF.name),Panier:'mais le panier recule','Base clients':'mais la base de porteurs diminue',Contribution:'mais le poids Débit reste sous l’objectif',Rétention:'mais les clients occasionnels décrochent'})[s0.dom]}`:''}`;
   const pF=P.fmt[0];
@@ -912,15 +1102,16 @@ function renderDeep(){const {k}=M,F=A.F;
     <button type="button" class="back" data-go="brief">${icon('left')} Ma journée</button>
     <div class="crumb">Analyse approfondie · ${M.label} · encartés</div>
     <div class="head-row"><h1 class="h1" style="max-width:none">Comprendre la performance du Programme Club</h1><div class="btns">${expMenuHtml()}</div></div>
-    <p class="byline">De la performance d’ensemble aux causes racines et aux actions</p>
-    <div class="toc"><span class="l">Sommaire</span>${SECTIONS.map((s,i)=>`<button type="button" data-sec="${s.id}">${i+1}. ${s.nav}</button>`).join('')}</div>
+    <p class="byline">Diagnostic automatique sur tout le périmètre, puis détail par thème</p>
+    ${diagHtml()}
+    <div class="toc"><span class="l">Détail par thème</span>${SECTIONS.map((s,i)=>`<button type="button" data-sec="${s.id}">${i+1}. ${s.nav}</button>`).join('')}</div>
     ${SECTIONS.map((s,si)=>`<section class="asec" id="s-${s.id}"><div class="asec-h"><div><div class="eb">${si+1} · ${s.eb.replace(/^\d+ · /,'')}</div><h2>${s.title}</h2></div><button type="button" class="ask-btn" data-q="${s.q}">${icon('spark',15)}Demander à TTMD</button></div>
       <div class="prose">${s.prose.filter(Boolean).map(p=>`<p>${p}</p>`).join('')}</div>${s.html?`<div style="margin-top:14px">${s.html}</div>`:''}
       ${s.hyps?`<div class="hyps">${s.hyps.map(h=>`<div class="hyp ${h[0]==='r'?'rej':''}"><div class="hyp-h"><span class="st ${h[0]}">${h[1]}</span><b>${h[2]}</b><span class="imp ${h[0]==='r'?'z':''}">${h[3]}</span></div><p>${h[4]}</p><span class="s">Source : ${h[5]}</span></div>`).join('')}</div>`:''}
       ${s.recos?s.recos.map((r,j)=>`<div class="reco"><span class="k">${j+1}</span><div><b>${r[0]}</b><p>${r[1]}</p><div class="meta"><span>Porteur : <b>${r[2]}</b></span><span>Horizon : <b>${r[3]}</b></span><span>Cible : <b>${r[4]}</b></span>${r[6]?`<span class="imp">${r[6]}</span>`:''}<button type="button" class="btn sm" ${r[5]==='Chiffrer avec TTMD'?'data-q="eqc"':''}>${r[5]}</button></div></div></div>`).join(''):''}
       ${s.figs.length?`<div class="figs">${s.figs.map(f=>figHtml(f)).join('')}</div>`:''}</section>`).join('')}
     <div class="method"><b>Méthode et fiabilité.</b> ${M.label} vs N-1, encartés. ${MODE==='real'?'Chiffres lus dans les tables Pulse du dashboard Programme Club (Tableau Cloud), dans votre navigateur ; aucune donnée n’est envoyée ailleurs.':''} Les textes, signaux et hypothèses sont générés par des règles fixes à partir des KPI. Seules les lignes « Simulation » reposent sur une hypothèse, affichée à côté du montant.</div>`;
-  bindCommon($('#v-deep'),'Analyse approfondie · Programme Club');bindExport($('#v-deep'));drawFigs($('#v-deep'));
+  bindCommon($('#v-deep'),'Analyse approfondie · Programme Club');bindExport($('#v-deep'));bindDiag($('#v-deep'));typeVerdict($('#v-deep'));drawFigs($('#v-deep'));
 }
 
 /* ===================== DASHBOARD RÉGALIEN (structure du workbook) ===================== */
@@ -1006,14 +1197,15 @@ function splash(ck){const inT=window.self!==window.top;['brief','deep','rg','his
   $('#v-brief').innerHTML=`<div class="splash" style="max-width:640px;margin:8vh auto 0;text-align:center"><div class="eb" style="font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--accent);text-transform:uppercase">Pulse · Programme Club</div>
    <h1 class="h1" style="margin:10px auto 10px;max-width:none">${inT?'Connexion aux données Programme Club':'Pulse s’ouvre dans Tableau Cloud'}</h1>
    <p class="byline" style="font-size:15px;line-height:1.6">${inT?(ck?'Le navigateur ne transmet pas la session Tableau Cloud à l’extension (cookies tiers bloqués). Autorisez les cookies tiers pour <b>[*.]online.tableau.com</b> dans les paramètres du navigateur, puis rechargez la page.':esc(MODE_MSG||'Initialisation…')+'<br>Pulse lit les chiffres certifiés du dashboard Programme Club avec vos droits Tableau.'):'Cette page ne contient aucune donnée. Ouvrez le dashboard <b>Pulse Programme Club</b> sur Tableau Cloud pour lire la performance du programme.'}</p></div>`;}
-function renderAll(){if(!M){splash();return;}figN=0;A=analyse();A.P=pilot();A.O=panorama();renderGbar();renderBrief();renderDeep();renderHist();if(curView==='rg')renderRG();else if(!$('#v-rg').hidden)renderRG();if(!['brief','deep','rg','hist'].some(x=>!$('#v-'+x).hidden))show('brief');$('#ttmd').hidden=true;}
+function renderAll(){if(!M){splash();return;}figN=0;A=analyse();A.P=pilot();A.O=panorama();A.D=diagnose();renderGbar();renderBrief();renderDeep();renderHist();if(curView==='rg')renderRG();else if(!$('#v-rg').hidden)renderRG();if(!['brief','deep','rg','hist'].some(x=>!$('#v-'+x).hidden))show('brief');$('#ttmd').hidden=true;}
 
 document.querySelectorAll('.side .nav[data-go]').forEach(n=>n.addEventListener('click',()=>{if(n.dataset.go==='ttmd')openTT(null,{brief:'Ma journée',deep:'Analyse approfondie',rg:'Dashboard régalien'}[curView]+' · Programme Club');else show(n.dataset.go);}));
 $('#ttClose').addEventListener('click',()=>{$('#ttmd').hidden=true;setNav(curView);});
 $('#ttForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#ttInput').value.trim().toLowerCase();if(!v)return;
-  const map=[['recrut','rec'],['magasin','rec'],['pass','val'],['app','val'],['activation','val'],['valeur','val'],['segment','seg'],['hebdo','seg'],['irrégul','seg'],['panier','eqc'],['fréquence','eqc'],['levier','eqc'],['mix','mix'],['dt','dt'],['objectif','dt'],['foyer','base'],['perdu','base'],['base','base'],['poids','poids']];
+  const map=[['prix','eqc'],['article','eqc'],['territ','dt'],['région','dt'],['churn','base'],['rétention','base'],['perte','base'],['tendance','poids'],['trajectoire','poids'],['format','mix'],['digital','rec'],['recrut','rec'],['magasin','rec'],['pass','val'],['app','val'],['activation','val'],['valeur','val'],['segment','seg'],['hebdo','seg'],['irrégul','seg'],['panier','eqc'],['fréquence','eqc'],['levier','eqc'],['mix','mix'],['dt','dt'],['objectif','dt'],['foyer','base'],['perdu','base'],['base','base'],['poids','poids']];
   const hit=map.find(([w])=>v.includes(w));$('#ttInput').value='';
-  if(hit)openTT(hit[1],$('#ttCtx').textContent.replace('Contexte : ',''));else{$('#ttBody').insertAdjacentHTML('beforeend',`<div class="msg-u">${esc(v)}</div><div class="msg-a">Dans ce prototype, je réponds aux questions de référence. Essayez une des suggestions ci-dessous.</div>`+suggHtml());bindSugg();}});
+  if(hit)openTT(hit[1],$('#ttCtx').textContent.replace('Contexte : ',''));else{const ws=v.split(/[^a-zàâçéèêëîïôûùüÿ]+/).filter(w=>w.length>3);const D=A&&A.D;const best=D?D.ins.map(x=>({x,s:ws.filter(w=>(x.title+' '+x.txt+' '+x.dom).toLowerCase().includes(w)).length})).filter(o=>o.s).sort((a,b)=>b.s-a.s||b.x.score-a.x.score)[0]:null;
+    $('#ttBody').insertAdjacentHTML('beforeend',`<div class="msg-u">${esc(v)}</div><div class="msg-a">${best?`<b>${best.x.title}</b><br>${best.x.txt}<br><br>${best.x.why}<div class="srcs">Source : diagnostic Pulse · ${best.x.proof}</div>`:'Je n’ai pas trouvé de constat lié à cette question dans le diagnostic. Essayez une des suggestions ci-dessous.'}</div>`+suggHtml());bindSugg();}});
 
 /* ===================== FILTRES GLOBAUX : tout le périmètre du dashboard Programme Club =====================
    En mode Tableau, chaque choix pilote les paramètres et filtres du dashboard, puis Pulse relit les feuilles. */
