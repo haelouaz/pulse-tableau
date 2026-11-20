@@ -410,7 +410,6 @@ table.heat tr.grp td{border-bottom:2px solid var(--line)}
     <button type="button" class="nav" data-go="brief" aria-current="page"><svg class="ico"><use href="#i-sun"/></svg>Ma journée<span class="badge n">5</span></button>
     <button type="button" class="nav" data-go="deep"><svg class="ico"><use href="#i-trend"/></svg>Analyse approfondie<span class="badge t">7 min</span></button>
     <button type="button" class="nav" data-go="hist"><svg class="ico"><use href="#i-trend"/></svg>Historique<span class="badge t">toutes périodes</span></button>
-    <button type="button" class="nav" data-go="ttmd"><svg class="ico"><use href="#i-chat"/></svg>Talk to my Data<span class="badge ia">IA</span></button>
     <div class="grp">DASHBOARDS RÉGALIENS</div>
     <button type="button" class="nav" data-go="rg"><svg class="ico"><use href="#i-grid"/></svg>Programme Club</button>
     <button type="button" class="nav muted hide-sm" disabled><svg class="ico"><use href="#i-grid"/></svg>Promo Perso</button>
@@ -432,17 +431,6 @@ table.heat tr.grp td{border-bottom:2px solid var(--line)}
       <section class="view" id="v-rg" hidden></section>
       <section class="view" id="v-hist" hidden></section>
     </div></main>
-    <aside class="ttmd" id="ttmd" hidden aria-label="Talk to my Data">
-      <div class="tt-h">
-        <span class="lg"><svg class="ico"><use href="#i-spark"/></svg></span>
-        <div><b>Talk to my Data</b><p>Définitions, contexte métier et analyses sur le Programme Club</p></div>
-        <button type="button" class="x" id="ttClose" aria-label="Fermer">×</button>
-        <span class="ctx" id="ttCtx">Contexte : Programme Club</span>
-      </div>
-      <div class="tt-body" id="ttBody"></div>
-      <form class="tt-in" id="ttForm"><input id="ttInput" type="text" placeholder="Posez une question sur le Programme Club" aria-label="Question"><button type="submit" class="btn primary sm" aria-label="Envoyer"><svg class="ico" style="width:16px;height:16px"><use href="#i-send"/></svg></button></form>
-      <p class="tt-note">Prototype : réponses pré-calculées sur les questions de référence du POC.</p>
-    </aside>
   </div>
 </div>
 
@@ -660,7 +648,7 @@ const FIGS={
 const figTitle=k=>FIGS[k].t||({rec:`${M.focus} · écart cumulé de recrutement vs N-1`,dt:`${M.ax} ${M.focus} · poids Débit encartés et évolution du recrutement`,regions:`Évolution du recrutement par région (${M.focus})`}[k]);
 let figN=0;
 function figHtml(key,{noRg=false}={}){const f=FIGS[key],id='f'+(++figN);
-  return `<div class="fig" data-fig="${key}" data-id="${id}"><div class="fig-h"><h3>${figTitle(key)}</h3><div class="fig-act">${f.seg?`<div class="seg">${f.seg.map(([v,l])=>`<button type="button" data-m="${v}" aria-pressed="${v===f.def}">${l}</button>`).join('')}</div>`:''}<button type="button" class="mini-link" data-q="${f.q}">${icon('spark',14)}Expliquer</button>${noRg?'':`<button type="button" class="mini-link" data-rg="${f.rg}">${icon('grid',14)}Dashboard</button>`}</div></div><div class="chart"></div>${f.legend?`<div class="legend">${f.legend}</div>`:''}</div>`;}
+  return `<div class="fig" data-fig="${key}" data-id="${id}"><div class="fig-h"><h3>${figTitle(key)}</h3><div class="fig-act">${f.seg?`<div class="seg">${f.seg.map(([v,l])=>`<button type="button" data-m="${v}" aria-pressed="${v===f.def}">${l}</button>`).join('')}</div>`:''}${noRg?'':`<button type="button" class="mini-link" data-rg="${f.rg}">${icon('grid',14)}Dashboard</button>`}</div></div><div class="chart"></div>${f.legend?`<div class="legend">${f.legend}</div>`:''}</div>`;}
 function drawFigs(root,override){root.querySelectorAll('.fig').forEach(el=>{const f=FIGS[el.dataset.fig],ch=el.querySelector('.chart');const ok=override&&f.seg&&f.seg.some(s=>s[0]===override);const run=m=>{ch.innerHTML=f.fn(m);};run(ok?override:f.def);
   if(f.seg){const sg=el.querySelector('.seg');if(ok)sg.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.m===override)));sg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{sg.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));run(b.dataset.m);}));}});}
 
@@ -692,17 +680,10 @@ function qa(key){const {k}=M;const Q={
 
 /* ===================== TALK TO MY DATA ===================== */
 const QKEYS=['poids','mix','eqc','seg','rec','base','dt','val'];
-function openTT(key,ctx){
-  $('#ttmd').hidden=false;$('#ttCtx').textContent='Contexte : '+(ctx||'Programme Club');setNav('ttmd');const body=$('#ttBody');
-  if(!key){body.innerHTML=suggHtml();bindSugg();return;}
-  const [q,a,src]=qa(key);body.innerHTML=`<div class="msg-u">${q}</div><div class="steps" id="stp"></div>`;
-  const labels=['Compréhension de la question','Requête sur les KPI certifiés','Contrôle des chiffres','Rédaction de la réponse'],reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;let i=0;
-  const draw=()=>{const st=$('#stp');if(st)st.innerHTML='<span class="eb">ANALYSE EN COURS</span>'+labels.map((l,j)=>j<i?`<span class="s2">✓ ${l}</span>`:j===i?`<span class="s1">… ${l}</span>`:`<span class="s0">○ ${l}</span>`).join('');};
-  const tick=()=>{i++;draw();if(i<labels.length)setTimeout(tick,reduce?0:340);else{const st=$('#stp');if(st)st.remove();body.insertAdjacentHTML('beforeend',`<div class="msg-a">${a}<div class="srcs">Source : ${src} · ${MODE==='real'?'dashboard régalien Programme Club (Tableau Cloud)':'dashboard régalien Programme Club (Tableau Cloud)'}</div></div>`+suggHtml(key));bindSugg();}};
-  draw();setTimeout(tick,reduce?0:340);
-}
+const QSEC={poids:'performance',eqc:'moteurs',rec:'base',base:'base',val:'leviers',mix:'causes',dt:'ou',seg:'moteurs'};
+function openTT(key){show('deep',QSEC[key]||'performance');}
 function suggHtml(skip){return `<div class="sugg"><span class="eb">QUESTIONS SUGGÉRÉES</span>${QKEYS.filter(k=>k!==skip).slice(0,4).map(k=>`<button type="button" data-qq="${k}">${qa(k)[0]}</button>`).join('')}</div>`;}
-function bindSugg(){$('#ttBody').querySelectorAll('[data-qq]').forEach(b=>b.addEventListener('click',()=>openTT(b.dataset.qq,$('#ttCtx').textContent.replace('Contexte : ',''))));}
+function bindSugg(){}
 
 /* ===================== MA JOURNÉE (niveau 1) ===================== */
 /* ===================== PILOTAGE : valeur en jeu, dynamique, priorités (règles fixes, à partir des KPI) ===================== */
@@ -785,7 +766,7 @@ function panorama(){const O={fmt:[],terr:[],cli:{}};const {formats}=M;
   return O;}
 function panoHtml(){const O=A.O,k=M.k;
   const fmtT=`<div class="tbl"><table class="t">${thead(['Format','Poids CA','vs N-1','Poids Débit','vs objectif','CA encartés','vs non enc.','Recrues'])}<tbody>${O.fmt.map(f=>`<tr${f.name==='Groupe'?' style="font-weight:700;background:var(--surface-2)"':''}><td>${esc(f.name)}</td><td class="r num">${pct(f.poids_ca,1)}</td><td class="r">${chg(f.dca)}</td><td class="r num">${pct(f.poids_db,1)}</td><td class="r">${chg(f.gap)}</td><td class="r">${chg(f.ev_ca,evo)}</td><td class="r">${f.ev_ca!=null&&f.ev_ne!=null?chg(f.ev_ca-f.ev_ne,v=>pts(v)):'—'}</td><td class="r">${chg(f.ev_rec,evo)}</td></tr>`).join('')}</tbody></table></div>`;
-  const terrT=O.terr.length?`<div class="tbl"><table class="t">${thead(['Format','DT sous objectif','DT la plus en retard','Magasins sous objectif','Magasins en recul de recrutement','Recrutement le plus en recul'])}<tbody>${O.terr.map(t=>`<tr><td><b>${esc(t.f)}</b></td><td class="r num">${t.dtUnder} / ${t.nDt}</td><td class="r">${t.worst?`${esc(t.worst.n)} ${chg(t.worst.gap)}`:'—'}</td><td class="r num">${t.nMag?`${t.magUnder} / ${t.nMag}`:'—'}</td><td class="r num">${t.nMagRec?`${t.magRecDown} / ${t.nMagRec}`:'—'}</td><td class="r">${t.recW?`${esc(t.recW.n)} ${chg(t.recW.ev,evo)}`:'—'}</td></tr>`).join('')}</tbody></table></div>`:'<p class="src">Données territoriales disponibles sur la dernière période.</p>';
+  const terrT=O.terr.length?`<div class="tbl"><table class="t">${thead(['Format','DT sous objectif','DT la plus en retard','Magasins suivis sous objectif*','Magasins suivis en recul de recrutement*','Recrutement le plus en recul'])}<tbody>${O.terr.map(t=>`<tr><td><b>${esc(t.f)}</b></td><td class="r num">${t.dtUnder} / ${t.nDt}</td><td class="r">${t.worst?`${esc(t.worst.n)} ${chg(t.worst.gap)}`:'—'}</td><td class="r num">${t.nMag?`${t.magUnder} / ${t.nMag}`:'—'}</td><td class="r num">${t.nMagRec?`${t.magRecDown} / ${t.nMagRec}`:'—'}</td><td class="r">${t.recW?`${esc(t.recW.n)} ${chg(t.recW.ev,evo)}`:'—'}</td></tr>`).join('')}</tbody></table></div>`:'<p class="src">Données territoriales disponibles sur la dernière période.</p>';
   const c=[];
   if(A.segBest&&A.segBest.ev!=null)c.push(['Segments',`${A.segWorst.name} ${evo(A.segWorst.ev)}`,`meilleur : ${A.segBest.name} ${evo(A.segBest.ev)} · plus gros : ${A.segBig.name} (${pct(A.segBig.poids,0)} du CA)`,A.segWorst.ev<0?'vig':'ok','moteurs']);
   if(A.actBest&&A.actBest.mult!=null)c.push(['Activation',`${A.actBest.name} × ${nf(A.actBest.mult,2)}`,`vs ${M.ref.name} (${nf(M.ref.depense,0)} € de dépense annuelle)`,A.actBest.mult>1?'opp':'vig','leviers']);
@@ -795,7 +776,7 @@ function panoHtml(){const O=A.O,k=M.k;
   const cliC=`<div class="axes pil">${c.map(x=>`<button type="button" class="dom" data-sec="${x[4]}"><b><span class="dot ${x[3]}"></span>${x[0]}</b><span class="pv">${x[1]}</span><span>${x[2]}</span></button>`).join('')}</div>`;
   return `<div class="pano"><div class="sec-h" style="margin-top:26px"><h2>Panorama du programme</h2><p>Tout le périmètre · ${esc(M.label)} · ${esc(FILT.nc==='Exclu'?'Cora exclus':FILT.nc)} · ${esc(FILT.stat)}</p></div>
     <div class="panel"><h3 style="font-size:14.5px">Formats</h3>${fmtT}</div>
-    <div class="panel"><h3 style="font-size:14.5px">Territoires · dernière période disponible</h3>${terrT}</div>
+    <div class="panel"><h3 style="font-size:14.5px">Territoires · dernière période disponible</h3>${terrT}<p class="src">* Magasins suivis : les 20 meilleurs et les 20 moins bons par format sur l’écart à l’objectif et sur le recrutement, pas l’ensemble du parc.</p></div>
     <div class="panel"><h3 style="font-size:14.5px">Clients</h3>${cliC}</div></div>`;}
 
 /* ===================== EXPORT & PARTAGE (tout se fait dans le navigateur, rien n'est envoyé) ===================== */
@@ -816,7 +797,7 @@ function expHtml(){const v=expView(),src=$('#v-'+v).cloneNode(true);
 function dl(name,content,type){try{const u=URL.createObjectURL(new Blob([content],{type}));const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);return true;}catch(e){console.warn('[Pulse] export',e);return false;}}
 function expPdf(){const html=expHtml();let w=null;try{w=window.open('','_blank');}catch(e){w=null;}
   if(w&&w.document){w.document.open();w.document.write(html.replace('</body>','<script>setTimeout(function(){window.focus();window.print();},400)<\/script></body>'));w.document.close();toast('Choisissez « Enregistrer au format PDF » dans la fenêtre d’impression.');return;}
-  try{document.body.classList.add('printing');window.print();document.body.classList.remove('printing');}catch(e){if(dl(expName('html'),html,'text/html'))toast('Impression bloquée par Tableau : page téléchargée, ouvrez-la puis Ctrl+P.');}}
+  try{window.print();}catch(e){toast('Impression bloquée : autorisez les fenêtres pop-up pour Tableau Cloud puis réessayez.');}}
 function expText(){const {k}=M,P=A.P,O=A.O,L=[];const t=s=>String(s).replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/\s+/g,' ').trim();
   L.push(`Pulse · Programme Club · ${M.label}`,'');
   const h1=$('#v-brief .h1');if(h1)L.push(t(h1.innerHTML),'');
@@ -846,14 +827,13 @@ function expMenuHtml(){return `<div class="expwrap"><button type="button" class=
   <div class="expmenu" role="menu" hidden>
     <button type="button" role="menuitem" data-exp="pdf"><b>PDF</b><span>Imprimer ou enregistrer la page en PDF</span></button>
     <button type="button" role="menuitem" data-exp="copy"><b>Copier la synthèse</b><span>Texte prêt à coller dans un mail ou Teams</span></button>
-    <button type="button" role="menuitem" data-exp="html"><b>Page HTML</b><span>Fichier autonome à partager</span></button>
-    <button type="button" role="menuitem" data-exp="csv"><b>Chiffres (.csv)</b><span>KPI, formats, territoires, activation</span></button></div></div>`;}
+    <button type="button" role="menuitem" data-exp="xlsx"><b>Chiffres (Excel)</b><span>Classeur complet : un onglet par thème, toutes périodes et mailles</span></button></div></div>`;}
 function bindExport(root){const w=root.querySelector('.expwrap');if(!w)return;const b=w.querySelector('[data-exp="toggle"]'),m=w.querySelector('.expmenu');
   const close=()=>{m.hidden=true;b.setAttribute('aria-expanded','false');};
   b.addEventListener('click',e=>{e.stopPropagation();m.hidden=!m.hidden;b.setAttribute('aria-expanded',String(!m.hidden));});
   document.addEventListener('click',e=>{if(!w.contains(e.target))close();});w.addEventListener('keydown',e=>{if(e.key==='Escape'){close();b.focus();}});
   m.querySelectorAll('[data-exp]').forEach(x=>x.addEventListener('click',()=>{close();const a=x.dataset.exp;
-    if(a==='pdf')expPdf();else if(a==='copy')expCopy();else if(a==='csv')expCsv();else if(a==='html'){dl(expName('html'),expHtml(),'text/html;charset=utf-8')?toast('Page HTML téléchargée.'):toast('Téléchargement bloqué par Tableau : utilisez « PDF » ou « Copier la synthèse ».');}}));}
+    if(a==='pdf')expPdf();else if(a==='copy')expCopy();else if(a==='xlsx')expXlsx();}));}
 
 /* ===================== DIAGNOSTIC PULSE IA : moteur d'analyse (règles d'expert fidélité, calculées sur les tables) ===================== */
 const DG_F=['Groupe','Hyper','Market','Proxi','E-commerce'];
@@ -980,33 +960,100 @@ function heatHtml(D){const cols=[['gap','Poids CA vs obj.',pts],['ca_e','CA enca
   const cell=(v,c,f)=>{if(v==null||!isFinite(v))return '<td class="hm">—</td>';const a=Math.round(Math.min(Math.abs(v)/mx[c],1)*34+4);return `<td class="hm" style="background:color-mix(in srgb,${v<0?'var(--neg)':'var(--accent)'} ${a}%,var(--surface))">${f(v)}</td>`;};
   return `<div class="tbl"><table class="t heat">${thead(['Format',...cols.map(c=>c[1]),'Levier le plus pénalisant'])}<tbody>${D.mat.map(r=>`<tr${r.f==='Groupe'?' class="grp"':''}><td><b>${esc(r.f)}</b></td>${cols.map(([c,,f])=>cell(r[c],c,f)).join('')}<td class="r">${r.worst?`<span class="tag vig">${r.worst[0]} ${dmeur(r.worst[1])}</span>`:'<span class="tag ok">aucun</span>'}</td></tr>`).join('')}</tbody></table></div>
   <p class="src">Évolutions vs N-1 par format. Plus la couleur est intense, plus l’écart est fort dans sa colonne : orange = recul, bleu = progrès.</p>`;}
-function insCard(x,i){return `<article class="ins ${x.t}"><div class="ins-h"><span class="rank">${i+1}</span><span class="tag ${x.t==='neg'?'alert':x.t==='opp'?'opp':'ok'}">${x.t==='neg'?'À corriger':x.t==='opp'?'Opportunité':'Point fort'}</span><span class="tag dom2">${x.dom}</span><span class="cf ${CONF_C[x.conf]}" title="Confiance : persistance du signal sur les dernières périodes et ampleur">Confiance ${x.conf.toLowerCase()}</span>${x.imp?`<span class="impact ${x.t==='neg'?'':'p'}">${x.imp}</span>`:''}</div>
+function insCard(x,i){return `<article class="ins ${x.t}"><div class="ins-h"><span class="rank">${i+1}</span><span class="tag ${x.t==='neg'?'alert':x.t==='opp'?'opp':'ok'}">${x.t==='neg'?'À corriger':x.t==='opp'?'Opportunité':'Point fort'}</span><span class="tag dom2">${x.dom}</span><span class="cf ${CONF_C[x.conf]}" title="Fiabilité du signal : répétition sur les dernières périodes et ampleur (règle fixe)">Signal ${({Élevée:'robuste',Moyenne:'à confirmer',Faible:'fragile'})[x.conf]}</span>${x.imp?`<span class="impact ${x.t==='neg'?'':'p'}">${x.imp}</span>`:''}</div>
   <h3>${x.title}</h3><p>${x.txt}</p><p class="why"><b>Pourquoi c’est important.</b> ${x.why}</p>
   <details><summary>Voir la preuve</summary><p class="src">${x.proof}</p></details>
-  <div class="sig-act"><button type="button" class="btn sm" data-q="${x.q}">${icon('spark',14)}Creuser avec TTMD</button><button type="button" class="btn ghost sm" data-sec="${x.sec}">Voir le détail</button></div></article>`;}
+  <div class="sig-act"><button type="button" class="btn sm" data-sec="${x.sec}">Voir le détail</button></div></article>`;}
 function diagHtml(){const D=A.D;if(!D)return '';const nT=A.O?A.O.nDt:0,nM=A.O?A.O.nMag:0;
-  const stats=[[D.tests,'tests d’analyse'],[M.formats.length,'formats'],[nT,'DT'],[nM,'magasins'],[D.nPer,'périodes'],[M.segs.length,'segments']].filter(x=>x[0]);
-  return `<section class="aidiag"><div class="ai-h"><span class="ai-badge">${icon('spark',15)}Diagnostic Pulse IA</span><span class="ai-meta">${stats.map(s=>`<b>${nf(s[0],0)}</b> ${s[1]}`).join(' · ')}</span></div>
+  const stats=[[D.tests,'tests d’analyse'],[M.formats.length,'formats'],[nT,'DT'],[D.nPer,'périodes'],[M.segs.length,'segments']].filter(x=>x[0]);
+  return `<section class="aidiag"><div class="ai-h"><span class="ai-badge">Diagnostic automatique</span><span class="ai-meta">${stats.map(s=>`<b>${nf(s[0],0)}</b> ${s[1]}`).join(' · ')}</span></div>
     <h2 class="ai-title">Ce qui se passe, pourquoi, et quoi faire</h2>
     <p class="ai-verdict" data-type="${esc(dgVerdict(D))}"></p>
     <div class="ai-kpis"><div><span class="n">${D.neg.length}</span><span>points à corriger</span></div><div><span class="n">${D.opp.length}</span><span>opportunités</span></div><div><span class="n">${D.pos.length}</span><span>points forts</span></div></div>
-    <form class="ai-ask" data-ask><span>${icon('spark',16)}</span><input type="text" placeholder="Posez une question : pourquoi le panier recule ? quelles DT prioriser ?" aria-label="Poser une question à Pulse"><button type="submit" class="btn primary sm">Analyser</button></form>
-    <div class="ai-chips">${D.ins.slice(0,4).map(x=>`<button type="button" class="chipq" data-q="${x.q}">${x.dom} : pourquoi ?</button>`).join('')}</div></section>
-  <section class="asec" id="s-arbre"><div class="asec-h"><div><div class="eb">Arbre des causes</div><h2>D’où vient l’écart de performance</h2></div><button type="button" class="ask-btn" data-q="eqc">${icon('spark',15)}Demander à TTMD</button></div>${treeHtml(D)}</section>
+    <p class="src" style="margin-top:12px">Constats produits par des règles fixes appliquées aux KPI des tables Programme Club : mêmes données, mêmes résultats. Les projections et simulations sont des ordres de grandeur, signalées comme telles.</p></section>
+  <section class="asec" id="s-arbre"><div class="asec-h"><div><div class="eb">Arbre des causes</div><h2>D’où vient l’écart de performance</h2></div></div>${treeHtml(D)}</section>
   <section class="asec" id="s-insights"><div class="asec-h"><div><div class="eb">Insights classés par impact</div><h2>${D.ins.length} constats, du plus urgent au moins urgent</h2></div></div><div class="inss">${D.ins.map(insCard).join('')}</div></section>
-  <section class="asec" id="s-heat"><div class="asec-h"><div><div class="eb">Matrice formats × leviers</div><h2>Où et pourquoi chaque format décroche</h2></div><button type="button" class="ask-btn" data-q="mix">${icon('spark',15)}Demander à TTMD</button></div>${heatHtml(D)}</section>`;}
-function typeVerdict(root){const el=root.querySelector('.ai-verdict[data-type]');if(!el)return;const txt=el.dataset.type;
-  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches||diagTyped===txt){el.textContent=txt;return;}diagTyped=txt;let i=0;el.classList.add('typing');
-  const step=()=>{i=Math.min(txt.length,i+3);el.textContent=txt.slice(0,i);if(i<txt.length)setTimeout(step,12);else el.classList.remove('typing');};step();}
+  <section class="asec" id="s-heat"><div class="asec-h"><div><div class="eb">Matrice formats × leviers</div><h2>Où et pourquoi chaque format décroche</h2></div></div>${heatHtml(D)}</section>`;}
+function typeVerdict(root){const el=root.querySelector('.ai-verdict[data-type]');if(el)el.textContent=el.dataset.type;}
 let diagTyped='';
-function bindDiag(root){const f=root.querySelector('[data-ask]');if(!f)return;f.addEventListener('submit',e=>{e.preventDefault();const v=f.querySelector('input').value.trim();if(!v)return;
-  $('#ttmd').hidden=false;$('#ttInput').value=v;const form=$('#ttForm')||$('#ttInput').closest('form');if(form)form.requestSubmit?form.requestSubmit():form.dispatchEvent(new Event('submit',{cancelable:true}));f.querySelector('input').value='';});}
+/* ===================== EXPORT EXCEL : classeur exhaustif et organisé (un onglet par thème) ===================== */
+let XLP=null;
+function loadXLSX(){if(window.XLSX)return Promise.resolve(window.XLSX);if(XLP)return XLP;
+  XLP=new Promise((ok,ko)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=()=>window.XLSX?ok(window.XLSX):ko(new Error('xlsx'));s.onerror=()=>ko(new Error('xlsx'));document.head.appendChild(s);setTimeout(()=>ko(new Error('timeout')),20000);}).catch(e=>{XLP=null;throw e;});return XLP;}
+/* libellés et formats des colonnes des tables Pulse */
+const XL_COL={identifiant:'Identifiant période',temporalite:'Temporalité',periode_n:'Période',enseigne:'Format',flag_cora:'Cora (0 exclu · 1 inclus · 2 ex-Cora)',statut_desc:'Statut',type_encartage:'Type d’encartage',ordre_periode:'Clé période',
+  axe:'Axe',valeur_axe:'Maille',nb_magasins:'Nb magasins',bloc:'Bloc',segmentation:'Segmentation',dimension:'Élément',dimension_2:'Élément 2',
+  ca_e_n:'CA encartés N',ca_e_n1:'CA encartés N-1',ca_ne_n:'CA non encartés N',ca_ne_n1:'CA non encartés N-1',ca_tot_n:'CA total N',ca_tot_n1:'CA total N-1',
+  debit_e_n:'Débit encartés N',debit_e_n1:'Débit encartés N-1',debit_ne_n:'Débit non encartés N',debit_ne_n1:'Débit non encartés N-1',debit_tot_n:'Débit total N',debit_tot_n1:'Débit total N-1',
+  poids_ca:'Poids CA encartés',poids_ca_n1:'Poids CA N-1',poids_ca_obj:'Poids CA objectif',poids_debit:'Poids Débit encartés',poids_debit_n1:'Poids Débit N-1',poids_debit_obj:'Poids Débit objectif',
+  evol_ca_e:'Évol. CA encartés',evol_ca_ne:'Évol. CA non encartés',evol_debit_e:'Évol. Débit encartés',evol_debit_ne:'Évol. Débit non encartés',evol_recrues:'Évol. recrues',
+  effet_format_ca:'Effet format (poids CA)',effet_mix_ca:'Effet mix (poids CA)',effet_format_debit:'Effet format (poids Débit)',effet_mix_debit:'Effet mix (poids Débit)',
+  clients_n:'Clients N',clients_n1:'Clients N-1',freq_n:'Fréquence N',freq_n1:'Fréquence N-1',depense_n:'Dépense moy. N',depense_n1:'Dépense moy. N-1',panier_n:'Panier N',panier_n1:'Panier N-1',
+  prix_n:'Prix moyen N',prix_n1:'Prix moyen N-1',articles_n:'Articles / panier N',articles_n1:'Articles / panier N-1',panier_ne_n:'Panier non enc. N',panier_ne_n1:'Panier non enc. N-1',
+  prix_ne_n:'Prix non enc. N',prix_ne_n1:'Prix non enc. N-1',articles_ne_n:'Articles non enc. N',articles_ne_n1:'Articles non enc. N-1',
+  cascade_ca_n1:'CA encartés N-1 (cascade)',effet_clients:'Effet clients',effet_freq:'Effet fréquence',effet_prix:'Effet prix',effet_articles:'Effet articles',effet_croises:'Effets croisés',effet_panier:'Effet panier',
+  cascade_ne_ca_n1:'CA non enc. N-1 (cascade)',effet_ne_debit:'Effet débit (non enc.)',effet_ne_prix:'Effet prix (non enc.)',effet_ne_articles:'Effet articles (non enc.)',effet_ne_croises:'Effets croisés (non enc.)',
+  recrues_n:'Recrues N',recrues_n1:'Recrues N-1',foyers:'Foyers',focus_ca:'CA',part:'Part',rk_obj_top:'Rang écart obj. (meilleurs)',rk_obj_flop:'Rang écart obj. (moins bons)',rk_rec_top:'Rang recrutement (meilleurs)',rk_rec_flop:'Rang recrutement (moins bons)'};
+const XL_SKIP=new Set(['_key']);
+function xlFmt(k){if(/^(poids|evol|part$|effet_(format|mix))/.test(k))return '0.0%';if(/^(panier|prix|depense)/.test(k))return '#,##0.00 €';if(/^(freq|articles)/.test(k))return '0.00';
+  if(/^(ca_|cascade|effet_|focus_ca)/.test(k))return '#,##0 €';if(/^(clients|recrues|debit|foyers|nb_)/.test(k))return '#,##0';return null;}
+function xlSheet(X,rows,order){const ks=[];rows.forEach(r=>Object.keys(r).forEach(k=>{if(!XL_SKIP.has(k)&&!ks.includes(k))ks.push(k);}));
+  const keep=ks.filter(k=>rows.some(r=>r[k]!=null&&r[k]!==''));const first=(order||[]).filter(k=>keep.includes(k));const cols=[...first,...keep.filter(k=>!first.includes(k))];
+  const aoa=[cols.map(k=>XL_COL[k]||k),...rows.map(r=>cols.map(k=>{const v=r[k];return v==null?null:(typeof v==='number'&&!isFinite(v))?null:v;}))];
+  const ws=X.utils.aoa_to_sheet(aoa);cols.forEach((k,c)=>{const z=xlFmt(k);if(!z)return;for(let r=1;r<aoa.length;r++){const a=X.utils.encode_cell({r,c});if(ws[a]&&typeof ws[a].v==='number')ws[a].z=z;}});
+  ws['!cols']=cols.map(k=>({wch:Math.max(10,Math.min(34,(XL_COL[k]||k).length+2))}));if(aoa.length>1)ws['!autofilter']={ref:X.utils.encode_range({s:{r:0,c:0},e:{r:aoa.length-1,c:cols.length-1}})};return ws;}
+function xlTable(X,head,rows,fmts){const ws=X.utils.aoa_to_sheet([head,...rows]);(fmts||[]).forEach((z,c)=>{if(!z)return;for(let r=1;r<=rows.length;r++){const a=X.utils.encode_cell({r,c});if(ws[a]&&typeof ws[a].v==='number')ws[a].z=z;}});
+  ws['!cols']=head.map((h,i)=>({wch:i===0?34:Math.max(12,Math.min(60,String(h).length+4))}));if(rows.length)ws['!autofilter']={ref:X.utils.encode_range({s:{r:0,c:0},e:{r:rows.length,c:head.length-1}})};return ws;}
+const xlTxt=s=>String(s??'').replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&nbsp;| | /g,' ').replace(/\s+/g,' ').trim();
+function xlData(){const enc=FILT.enc==='PASS'?'PASS':'Encarté',cora=T_CORA[FILT.nc];const pick=(rows,f)=>rows.some(f)?rows.filter(f):rows;
+  const ordF=e=>['Groupe','Hyper','Market','Proxi','E-commerce'].indexOf(e);const byPerF=(a,b)=>(a._key<b._key?1:a._key>b._key?-1:0)||ordF(a.enseigne)-ordF(b.enseigne);
+  const per=TB.periode.filter(r=>tBase(r)&&r.type_encartage===enc);
+  const cur=per.filter(r=>r._key===FILT.per).sort(byPerF);const hist=[...per].sort(byPerF);
+  const ter=TB.territoire.filter(r=>tBase(r)&&r.type_encartage===enc).sort((a,b)=>ordF(a.enseigne)-ordF(b.enseigne)||String(a.axe).localeCompare(b.axe)||String(a.valeur_axe).localeCompare(b.valeur_axe));
+  const cli=b=>{let r=TB.clients.filter(x=>x.bloc===b);r=pick(r,x=>x.flag_cora===cora);r=pick(r,x=>x.statut_desc===FILT.stat);if(r.some(x=>x.type_encartage))r=pick(r,x=>x.type_encartage==null||x.type_encartage===enc);
+    return r.sort((a,b)=>String(a.temporalite).localeCompare(b.temporalite)||ordF(a.enseigne)-ordF(b.enseigne)||String(a.segmentation||'').localeCompare(b.segmentation||'')||String(a.dimension||'').localeCompare(b.dimension||''));};
+  return {cur,hist,ter,cli};}
+async function expXlsx(){toast('Préparation du fichier Excel…');let X;try{X=await loadXLSX();}catch(e){expCsvAll();return;}
+  try{const {k}=M,P=A.P||{},D=A.D||{ins:[]},d=xlData(),wb=X.utils.book_new();
+    const add=(ws,n)=>X.utils.book_append_sheet(wb,ws,n.slice(0,31));
+    /* 1. Lisez-moi */
+    const pc=v=>v==null?'':v;
+    add(X.utils.aoa_to_sheet([['Pulse · Programme Club · export des chiffres'],[],['Période',M.label],['Temporalité',FILT.tempo],['Type d’encartage',FILT.enc],['Cora',FILT.nc],['Statut',FILT.stat],['Exporté le',new Date().toLocaleString('fr-FR')],['Source','Tables Pulse du dashboard Programme Club (Tableau Cloud) : pulse_pc_periode, pulse_pc_territoire, pulse_pc_clients'],[],
+      ['Onglet','Contenu'],['Synthèse KPI','Indicateurs clés du Groupe : N, N-1, évolution, objectif et écart'],['Formats','Toutes les colonnes de la période choisie, Groupe et 4 formats'],['Historique','Toutes les périodes de la temporalité, Groupe et 4 formats'],['Territoires','DT, DR, régions, modes d’exploitation, directions opérationnelles et magasins (top / flop 20), dernière période'],
+      ['Segments','Équation commerciale par segment, toutes segmentations et temporalités'],['Solde d’actifs','Foyers gagnés, perdus, constants'],['Valeur clients','Clients et dépense par type d’activation'],['Canal d’adhésion','Recrues par canal'],['Omnicanalité','Mode d’achat et transitions N-1 → N'],[],
+      ['Unités','Poids et évolutions en %, montants en €, effets de l’équation commerciale en € vs N-1, effets format / mix en points de poids.']]),'Lisez-moi');
+    /* 2. Synthèse KPI */
+    const kr=[['Poids CA encartés',k.poids_ca,k.poids_ca_n1,k.poids_ca_obj,'0.00%'],['Poids Débit encartés',k.poids_debit,k.poids_debit_n1,k.poids_debit_obj,'0.00%'],['CA encartés',k.ca_e,k.ca_e_n1,null,'#,##0 €'],['CA non encartés',k.ca_ne,k.ca_ne_n1,null,'#,##0 €'],
+      ['Débit encartés',k.debit_e,k.debit_e_n1,null,'#,##0'],['Débit non encartés',k.debit_ne,k.debit_ne_n1,null,'#,##0'],['Clients encartés',k.clients_e,k.clients_e_n1,null,'#,##0'],['Fréquence',k.freq_e,k.freq_e_n1,null,'0.00'],['Dépense moyenne',k.depense_e,k.depense_e_n1,null,'#,##0.00 €'],
+      ['Panier encartés',k.panier_e,k.panier_e_n1,null,'#,##0.00 €'],['Articles / panier',k.articles_e,k.articles_e_n1,null,'0.00'],['Prix moyen',k.prix_e,k.prix_e_n1,null,'#,##0.00 €'],['Panier non encartés',k.panier_ne,k.panier_ne_n1,null,'#,##0.00 €'],
+      ['Recrues',k.recrues,k.recrues_n1,null,'#,##0'],['Foyers actifs',k.foyers_n,k.foyers_n1,null,'#,##0'],['Foyers gagnés',k.foyers_gagnes,null,null,'#,##0'],['Foyers perdus',k.foyers_perdus!=null?Math.abs(k.foyers_perdus):null,null,null,'#,##0'],['Taux de conservation des foyers',P.retention,null,null,'0.0%']];
+    const isP=n=>/^Poids|^Taux/.test(n);
+    const kRows=kr.map(([n,a,b,o])=>{const p=/^Poids/.test(n);return [n,pc(a),pc(b),a!=null&&b!=null&&b!==0?(p?(a-b)*100:a/b-1):'',pc(o),a!=null&&o!=null?(a-o)*100:''];});
+    const ws2=xlTable(X,['Indicateur (Groupe)','N','N-1','Évolution vs N-1','Objectif','Écart à l’objectif'],kRows,[]);
+    kr.forEach(([n,,,,z],i)=>{const r=i+2,p=/^Poids/.test(n),set=(c,f)=>{const x=ws2[c+r];if(x&&typeof x.v==='number')x.z=f;};
+      set('B',z);set('C',z);set('E',z);set('D',p?'+0.00" pt";-0.00" pt"':'+0.0%;-0.0%');set('F','+0.00" pt";-0.00" pt"');});
+    add(ws2,'Synthèse KPI');
+    /* 6+. tables détaillées */
+    const O1=['periode_n','identifiant','temporalite','enseigne','type_encartage','flag_cora','statut_desc'];
+    add(xlSheet(X,d.cur,O1),'Formats');add(xlSheet(X,d.hist,O1),'Historique');
+    add(xlSheet(X,d.ter,['enseigne','axe','valeur_axe','nb_magasins','poids_debit','poids_debit_n1','poids_debit_obj','recrues_n','recrues_n1','evol_recrues','temporalite','type_encartage','flag_cora','statut_desc']),'Territoires');
+    const O2=['temporalite','periode_n','enseigne','type_encartage','segmentation','dimension','dimension_2','flag_cora','statut_desc'];
+    [['SEGMENT','Segments'],['SOLDE','Solde d’actifs'],['VALEUR','Valeur clients'],['CANAL','Canal d’adhésion']].forEach(([b,n])=>add(xlSheet(X,d.cli(b),O2),n));
+    add(xlSheet(X,[...d.cli('MIXITE'),...d.cli('MATRICE')],['bloc',...O2]),'Omnicanalité');
+    X.writeFile(wb,expName('xlsx'),{compression:true});toast('Fichier Excel téléchargé : un onglet par thème.');
+  }catch(e){console.warn('[Pulse] xlsx',e);expCsvAll();}}
+/* repli si la librairie Excel ne charge pas : un CSV unique, sections séparées */
+function expCsvAll(){try{const d=xlData(),L=[];const q=v=>v==null||(typeof v==='number'&&!isFinite(v))?'':typeof v==='number'?String(v).replace('.',','):`"${String(v).replace(/"/g,'""')}"`;
+  const sec=(t,rows)=>{if(!rows.length)return;const ks=[];rows.forEach(r=>Object.keys(r).forEach(k=>{if(!XL_SKIP.has(k)&&!ks.includes(k)&&rows.some(x=>x[k]!=null))ks.push(k);}));L.push(q(t),ks.map(k=>q(XL_COL[k]||k)).join(';'),...rows.map(r=>ks.map(k=>q(r[k])).join(';')),'');};
+  L.push(q(`Pulse Programme Club · ${M.label} · ${FILT.enc} · ${FILT.nc} · ${FILT.stat}`),'');
+  sec('FORMATS',d.cur);sec('HISTORIQUE',d.hist);sec('TERRITOIRES',d.ter);['SEGMENT','SOLDE','VALEUR','CANAL','MIXITE','MATRICE'].forEach(b=>sec(b,d.cli(b)));
+  dl(expName('csv'),'﻿'+L.join('\r\n'),'text/csv;charset=utf-8')?toast('Excel indisponible : chiffres téléchargés en .csv (sections séparées).'):toast('Téléchargement bloqué par le navigateur.');}catch(e){console.warn(e);toast('Export impossible.');}}
 
 function renderBrief(){const {k}=M,P=A.P,s0=A.signals[0],m=P.mom;
   const h1=`Le CA des encartés ${verb(k.ev_ca_e)} (${evo(k.ev_ca_e)})${s0&&s0.lv>=2?`, ${({Recrutement:'mais le recrutement '+(k.ev_recrues<0?'recule':'ralentit en '+A.recWorstF.name),Panier:'mais le panier recule','Base clients':'mais la base de porteurs diminue',Contribution:'mais le poids Débit reste sous l’objectif',Rétention:'mais les clients occasionnels décrochent'})[s0.dom]}`:''}`;
   const pF=P.fmt[0];
   const O=A.O,wt=O.worstFmtTerr;
-  const p4=O.nDt?`<b>${O.dtUnder} DT sur ${O.nDt}</b> et <b>${O.magUnder} magasins sur ${O.nMag}</b> sont sous l’objectif de poids Débit, tous formats confondus.${wt&&wt.dtUnder?` Le plus exposé : <b>${wt.f}</b> (${wt.dtUnder}/${wt.nDt} DT, ${wt.worst.n} à ${pts(wt.worst.gap)}).`:''}`:`Par format, le poids Débit est ${P.fmt.map(f=>`${f.name} ${f.gap!=null?pts(f.gap)+' vs obj.':pct(f.poids,1)}`).join(', ')}.`;
+  const p4=O.nDt?`<b>${O.dtUnder} DT sur ${O.nDt}</b> sont sous l’objectif de poids Débit, tous formats confondus.${wt&&wt.dtUnder?` Le plus exposé : <b>${wt.f}</b> (${wt.dtUnder}/${wt.nDt} DT, ${wt.worst.n} à ${pts(wt.worst.gap)}).`:''}`:`Par format, le poids Débit est ${P.fmt.map(f=>`${f.name} ${f.gap!=null?pts(f.gap)+' vs obj.':pct(f.poids,1)}`).join(', ')}.`;
   const p1=`Les encartés font <b>${pct(k.poids_ca,1)} du CA</b> (${pts(k.poids_ca-k.poids_ca_n1)} vs N-1${m&&m.dCA!=null?`, ${pts(m.dCA)} vs ${esc(m.prev)}`:''}). Leur CA ${verb(k.ev_ca_e)} de <b>${evo(k.ev_ca_e)}</b> contre ${evo(k.ev_ca_ne)} pour les non-encartés : ${k.ev_ca_e>=k.ev_ca_ne?'<b>le programme surperforme</b>':'<b>le programme sous-performe</b>'}. Premier moteur : ${A.pos.name.toLowerCase()} (${dmeur(A.pos.v)}).`;
   const p2=`La base compte <b>${cnt(k.foyers_n)} foyers actifs</b>${P.retention!=null?`, ${nf(P.retention*100,1)} % des foyers N-1 conservés`:''} : ${cnt(P.won)} gagnés, ${cnt(P.lost)} perdus (<b>solde ${S(A.solde)}${cnt(Math.abs(A.solde))}</b>). Le recrutement ${verb(k.ev_recrues)} de <b>${evo(k.ev_recrues)}</b>${A.recWorstF.ev_rec<0?`, plus fort recul en ${A.recWorstF.name} (${evo(A.recWorstF.ev_rec)})`:''}.`;
   const p3=P.gapCAeur!=null?(P.gapCAeur>0?`Atteindre l’objectif de poids CA représente <b>${meur(P.gapCAeur)} de CA encarté</b> à aller chercher (1 pt = ${meur(P.pt)}).`:`Le poids CA dépasse l’objectif de ${pts(A.gapCA)}, soit <b>${meur(-P.gapCAeur)} d’avance</b>.`):`Le levier le plus pénalisant est <b>${A.neg.name.toLowerCase()}</b> (${dmeur(A.neg.v)}).`;
@@ -1014,7 +1061,7 @@ function renderBrief(){const {k}=M,P=A.P,s0=A.signals[0],m=P.mom;
   $('#v-brief').innerHTML=`
     <div class="greet">Bonjour · Programme Club · tout le périmètre · ${M.label}${PERIODS[0]&&FILT.per===PERIODS[0].v?' (dernière période)':''}</div>
     <div class="head-row"><div><h1 class="h1">${h1}</h1><p class="byline">Revue Programme Club · rédigée à partir des KPI certifiés du dashboard régalien${M.maj?' · données du '+M.maj:''}</p></div>
-      <div class="btns"><button type="button" class="btn">${icon('bell')}Abonné</button>${expMenuHtml()}</div></div>
+      <div class="btns">${expMenuHtml()}</div></div>
     <div class="briefcard"><div class="eb">VOTRE BRIEF · TOUT LE PROGRAMME EN 30 SECONDES</div><div class="pts">
       <div class="pt"><span class="k">1</span><p><span class="ptl">Performance</span>${p1}</p></div>
       <div class="pt"><span class="k">2</span><p><span class="ptl">Base clients</span>${p2}</p></div>
@@ -1026,8 +1073,7 @@ function renderBrief(){const {k}=M,P=A.P,s0=A.signals[0],m=P.mom;
         <button type="button" class="mini" data-q="eqc"><div class="l">CA encartés</div><div class="v">${meur(k.ca_e)}<small class="${k.ev_ca_e>=0?'p':'n'}">${evo(k.ev_ca_e)}</small></div></button>
         <button type="button" class="mini" data-q="base"><div class="l">Foyers actifs</div><div class="v">${cnt(k.foyers_n)}<small class="${A.solde>=0?'p':'n'}">${S(A.solde)}${cnt(Math.abs(A.solde))}</small></div></button>
         <button type="button" class="mini" data-q="rec"><div class="l">Recrues</div><div class="v">${cnt(k.recrues)}<small class="${k.ev_recrues>=0?'p':'n'}">${evo(k.ev_recrues)}</small></div></button>
-        ${P.gapCAeur!=null?`<button type="button" class="mini" data-q="poids"><div class="l">${P.gapCAeur>0?'À aller chercher':'Avance objectif'}</div><div class="v">${meur(Math.abs(P.gapCAeur))}</div></button>`:''}</div>
-      <p class="foot">Chaque chiffre est cliquable : définition, source et explication par Talk to my Data.</p></div>
+        ${P.gapCAeur!=null?`<button type="button" class="mini" data-q="poids"><div class="l">${P.gapCAeur>0?'À aller chercher':'Avance objectif'}</div><div class="v">${meur(Math.abs(P.gapCAeur))}</div></button>`:''}</div></div>
     <div class="axes pil">${P.pil.map(d=>`<button type="button" class="dom" data-sec="${d[4]}"><b><span class="dot ${d[1]}"></span>${d[0]}</b><span class="pv">${d[2]}</span><span>${d[3]}</span></button>`).join('')}</div>
     ${panoHtml()}
     <div class="cols"><div>
@@ -1035,7 +1081,7 @@ function renderBrief(){const {k}=M,P=A.P,s0=A.signals[0],m=P.mom;
       <div class="decs">${decisions()}<button type="button" class="btn sm" data-sec="actions" style="margin-top:4px">Voir le plan d’action complet</button></div>
       <div class="sec-h" style="margin-top:22px"><h2>${A.signals.length} signa${A.signals.length>1?'ux méritent':'l mérite'} votre attention</h2><p>Classés par gravité</p></div>
       ${A.signals.map(s=>{const c=sigCard(s);return `<article class="signal"><div class="sig-top"><span class="tag ${s.t}">${s.tl}</span><span class="tag dom2">${s.dom}</span><span class="impact ${s.t==='opp'?'p':''}">${c.imp}</span></div><h3>${c.title}</h3><p>${c.txt}</p>
-        <div class="sig-act"><button type="button" class="btn dark sm" data-sec="${s.sec}">Lire l’analyse</button><button type="button" class="btn sm" data-q="${s.q}">Analyser avec TTMD</button><button type="button" class="btn ghost sm">Pas pertinent pour moi</button></div></article>`;}).join('')}
+        <div class="sig-act"><button type="button" class="btn dark sm" data-sec="${s.sec}">Lire l’analyse</button></div></article>`;}).join('')}
     </div><div>
       ${momCard()}
       <div class="aside" style="position:static;margin-bottom:12px"><div class="eb">✦ OÙ AGIR EN PRIORITÉ</div><p class="sub">Formats classés par urgence</p>
@@ -1063,7 +1109,7 @@ function recos(){const {k}=M,R=[],P=A.P||{};
   if(k.ev_recrues<0||A.recWorstF.ev_rec<0)R.push([`Relancer l’enrôlement en ${A.recWorstF.name}`,`Diagnostic des magasins en plus forte baisse (${A.magRFlop.slice(0,3).map(m=>m.name).join(', ')}), puis renfort de l’adhésion App en caisse et challenge hôtes·ses de caisse.`,'Dir. Opérations · magasins','2 semaines','Recrutement au niveau N-1','Créer une alerte recrutement',P.recNeed>0?`${cnt(P.recNeed)} foyers à compenser`:`${evo(A.recWorstF.ev_rec)} en ${A.recWorstF.name}`]);
   const F=[...M.fs].filter(f=>f.poids_debit_obj!=null).sort((a,b)=>(a.poids_debit-a.poids_debit_obj)-(b.poids_debit-b.poids_debit_obj))[0];
   if(F&&F.poids_debit<F.poids_debit_obj)R.push([`Encarter le trafic ${F.name}`,`Scan systématique de la carte ou de l’App en caisse ${F.name}, en commençant par les ${M.ax} les plus éloignées de l’objectif (${A.dtWorst.slice(0,2).map(d=>d.name).join(', ')}).`,`Dir. ${F.name}`,'6 semaines',`Poids Débit ${F.name} vers ${pct(F.poids_debit_obj,1)}`,'Partager aux magasins',`${pts(F.poids_debit-F.poids_debit_obj)} à combler`]);
-  if(k.ev_panier_e<0)R.push(['Remplir le panier des encartés',`Mécaniques d’avantages à seuil et ventes croisées sur les ${A.segBig.name.toLowerCase()}. La baisse vient surtout ${Math.abs(A.artE?A.artE.v:0)>Math.abs(A.prixE?A.prixE.v:0)?'du nombre d’articles':'du prix moyen'}.`,'Marketing CRM','4 semaines','Panier au niveau N-1','Chiffrer avec TTMD',P.simPanier?`+1 € de panier = ${meur(P.simPanier)}`:'']);
+  if(k.ev_panier_e<0)R.push(['Remplir le panier des encartés',`Mécaniques d’avantages à seuil et ventes croisées sur les ${A.segBig.name.toLowerCase()}. La baisse vient surtout ${Math.abs(A.artE?A.artE.v:0)>Math.abs(A.prixE?A.prixE.v:0)?'du nombre d’articles':'du prix moyen'}.`,'Marketing CRM','4 semaines','Panier au niveau N-1','',P.simPanier?`+1 € de panier = ${meur(P.simPanier)}`:'']);
   if(A.solde<0||A.segWorst.ev<0)R.push([`Retenir les ${A.segWorst.name.toLowerCase()} avant leur départ`,`Ciblage CRM des foyers à risque (baisse de fréquence) avec une offre personnalisée.${P.valLost?` Un foyer perdu représente en moyenne ${eur(P.valLost,0)} de CA.`:''}`,'Marketing fidélité','4 semaines','Solde de foyers ≥ 0','Partager au CRM',P.caLost?`${meur(P.caLost)} de CA perdu`:'']);
   if(A.actBest&&A.actBest.mult>1)R.push([`Faire basculer les membres vers ${A.actBest.name}`,`${A.actBest.name} dépense × ${nf(A.actBest.mult,2)} par rapport à ${M.ref.name}. Campagne d’activation ciblée sur les membres les plus actifs.`,'Marketing fidélité','6 semaines',`+1 pt de membres ${A.actBest.name}`,'Partager au CRM',P.simAct?`1 % de bascule = ${meur(P.simAct.v)}`:'']);
   if(!R.length)R.push(['Maintenir la dynamique','Aucun indicateur sous son seuil d’alerte : sécuriser les leviers actuels et suivre la fréquence.','Marketing fidélité','4 semaines','Indicateurs stables','Créer une alerte','']);
@@ -1102,16 +1148,16 @@ function renderDeep(){const {k}=M,F=A.F;
     <button type="button" class="back" data-go="brief">${icon('left')} Ma journée</button>
     <div class="crumb">Analyse approfondie · ${M.label} · encartés</div>
     <div class="head-row"><h1 class="h1" style="max-width:none">Comprendre la performance du Programme Club</h1><div class="btns">${expMenuHtml()}</div></div>
-    <p class="byline">Diagnostic automatique sur tout le périmètre, puis détail par thème</p>
+    <p class="byline">Diagnostic calculé sur tout le périmètre, puis détail par thème</p>
     ${diagHtml()}
     <div class="toc"><span class="l">Détail par thème</span>${SECTIONS.map((s,i)=>`<button type="button" data-sec="${s.id}">${i+1}. ${s.nav}</button>`).join('')}</div>
-    ${SECTIONS.map((s,si)=>`<section class="asec" id="s-${s.id}"><div class="asec-h"><div><div class="eb">${si+1} · ${s.eb.replace(/^\d+ · /,'')}</div><h2>${s.title}</h2></div><button type="button" class="ask-btn" data-q="${s.q}">${icon('spark',15)}Demander à TTMD</button></div>
+    ${SECTIONS.map((s,si)=>`<section class="asec" id="s-${s.id}"><div class="asec-h"><div><div class="eb">${si+1} · ${s.eb.replace(/^\d+ · /,'')}</div><h2>${s.title}</h2></div></div>
       <div class="prose">${s.prose.filter(Boolean).map(p=>`<p>${p}</p>`).join('')}</div>${s.html?`<div style="margin-top:14px">${s.html}</div>`:''}
       ${s.hyps?`<div class="hyps">${s.hyps.map(h=>`<div class="hyp ${h[0]==='r'?'rej':''}"><div class="hyp-h"><span class="st ${h[0]}">${h[1]}</span><b>${h[2]}</b><span class="imp ${h[0]==='r'?'z':''}">${h[3]}</span></div><p>${h[4]}</p><span class="s">Source : ${h[5]}</span></div>`).join('')}</div>`:''}
-      ${s.recos?s.recos.map((r,j)=>`<div class="reco"><span class="k">${j+1}</span><div><b>${r[0]}</b><p>${r[1]}</p><div class="meta"><span>Porteur : <b>${r[2]}</b></span><span>Horizon : <b>${r[3]}</b></span><span>Cible : <b>${r[4]}</b></span>${r[6]?`<span class="imp">${r[6]}</span>`:''}<button type="button" class="btn sm" ${r[5]==='Chiffrer avec TTMD'?'data-q="eqc"':''}>${r[5]}</button></div></div></div>`).join(''):''}
+      ${s.recos?s.recos.map((r,j)=>`<div class="reco"><span class="k">${j+1}</span><div><b>${r[0]}</b><p>${r[1]}</p><div class="meta"><span>Porteur : <b>${r[2]}</b></span><span>Horizon : <b>${r[3]}</b></span><span>Cible : <b>${r[4]}</b></span>${r[6]?`<span class="imp">${r[6]}</span>`:''}</div></div></div>`).join(''):''}
       ${s.figs.length?`<div class="figs">${s.figs.map(f=>figHtml(f)).join('')}</div>`:''}</section>`).join('')}
     <div class="method"><b>Méthode et fiabilité.</b> ${M.label} vs N-1, encartés. ${MODE==='real'?'Chiffres lus dans les tables Pulse du dashboard Programme Club (Tableau Cloud), dans votre navigateur ; aucune donnée n’est envoyée ailleurs.':''} Les textes, signaux et hypothèses sont générés par des règles fixes à partir des KPI. Seules les lignes « Simulation » reposent sur une hypothèse, affichée à côté du montant.</div>`;
-  bindCommon($('#v-deep'),'Analyse approfondie · Programme Club');bindExport($('#v-deep'));bindDiag($('#v-deep'));typeVerdict($('#v-deep'));drawFigs($('#v-deep'));
+  bindCommon($('#v-deep'),'Analyse approfondie · Programme Club');bindExport($('#v-deep'));typeVerdict($('#v-deep'));drawFigs($('#v-deep'));
 }
 
 /* ===================== DASHBOARD RÉGALIEN (structure du workbook) ===================== */
@@ -1149,7 +1195,7 @@ function rgPageBody(){const {k}=M,mes=rgMes;
   if(rgPage==='solde'){const cs=[['CA','cst_ca',meur],['Dépense moyenne','cst_depense',eur],['Fréquence','cst_freq',dec],['Panier moyen','cst_panier',eur],['Articles / panier','cst_articles',v=>dec(v,2)],['Prix moyen','cst_prix',eur]];
     return `<div class="kgrid">${tile('Foyers actifs',cnt(k.foyers_n),tc(A.solde,S(A.solde)+cnt(Math.abs(A.solde))+' vs N-1'),'base')+tile('Gagnés',cnt(k.foyers_gagnes),tc(1,dmeur(k.ca_gagnes)+' de CA'),'base')+tile('CA des constants',meur(k.cst_ca_n),tc(k.ca_constants,evo(ev(k.cst_ca_n,k.cst_ca_n1))+' · '+dmeur(k.ca_constants)),'base')+tile('Perdus',cnt(k.foyers_perdus),tc(-1,dmeur(k.ca_perdus)+' de CA'),'base')}</div>
     <div class="panel">${figHtml('solde',{noRg:true})}</div>
-    <div class="panel"><div class="fig-h"><h3>Passage du CA de N-1 à N par type de foyer</h3><button type="button" class="mini-link" data-q="base">${icon('spark',14)}Expliquer</button></div><div class="chart">${waterfall(wfSolde())}</div></div>
+    <div class="panel"><div class="fig-h"><h3>Passage du CA de N-1 à N par type de foyer</h3></div><div class="chart">${waterfall(wfSolde())}</div></div>
     ${panelT('Équation commerciale des foyers constants',`<table class="t">${thead(['KPI','N-1','N','Évol.'])}<tbody>${cs.map(([l,kk,f])=>`<tr><td>${l}</td><td class="r num">${f(k[kk+'_n1'])}</td><td class="r num">${f(k[kk+'_n'])}</td><td class="r">${pill(ev(k[kk+'_n'],k[kk+'_n1']))}</td></tr>`).join('')}</tbody></table>`)}`;}
   if(rgPage==='recrutement'&&FILT.tempo==='CAM')return panelT('Recrutement','<p class="sub">Le recrutement n’est pas suivi en CAM. Choisissez Hebdo, Mensuel ou CAD.</p>');
   if(rgPage==='recrutement')return `<div class="kgrid" style="grid-template-columns:repeat(${M.formats.length},minmax(0,1fr))">${M.formats.map(f=>tile('Recrues · '+f.name,cnt(f.recrues),tc(f.ev_rec,evo(f.ev_rec)),'rec')).join('')}</div>
@@ -1197,15 +1243,9 @@ function splash(ck){const inT=window.self!==window.top;['brief','deep','rg','his
   $('#v-brief').innerHTML=`<div class="splash" style="max-width:640px;margin:8vh auto 0;text-align:center"><div class="eb" style="font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--accent);text-transform:uppercase">Pulse · Programme Club</div>
    <h1 class="h1" style="margin:10px auto 10px;max-width:none">${inT?'Connexion aux données Programme Club':'Pulse s’ouvre dans Tableau Cloud'}</h1>
    <p class="byline" style="font-size:15px;line-height:1.6">${inT?(ck?'Le navigateur ne transmet pas la session Tableau Cloud à l’extension (cookies tiers bloqués). Autorisez les cookies tiers pour <b>[*.]online.tableau.com</b> dans les paramètres du navigateur, puis rechargez la page.':esc(MODE_MSG||'Initialisation…')+'<br>Pulse lit les chiffres certifiés du dashboard Programme Club avec vos droits Tableau.'):'Cette page ne contient aucune donnée. Ouvrez le dashboard <b>Pulse Programme Club</b> sur Tableau Cloud pour lire la performance du programme.'}</p></div>`;}
-function renderAll(){if(!M){splash();return;}figN=0;A=analyse();A.P=pilot();A.O=panorama();A.D=diagnose();renderGbar();renderBrief();renderDeep();renderHist();if(curView==='rg')renderRG();else if(!$('#v-rg').hidden)renderRG();if(!['brief','deep','rg','hist'].some(x=>!$('#v-'+x).hidden))show('brief');$('#ttmd').hidden=true;}
+function renderAll(){if(!M){splash();return;}figN=0;A=analyse();A.P=pilot();A.O=panorama();A.D=diagnose();renderGbar();renderBrief();renderDeep();renderHist();if(curView==='rg')renderRG();else if(!$('#v-rg').hidden)renderRG();if(!['brief','deep','rg','hist'].some(x=>!$('#v-'+x).hidden))show('brief');}
 
 document.querySelectorAll('.side .nav[data-go]').forEach(n=>n.addEventListener('click',()=>{if(n.dataset.go==='ttmd')openTT(null,{brief:'Ma journée',deep:'Analyse approfondie',rg:'Dashboard régalien'}[curView]+' · Programme Club');else show(n.dataset.go);}));
-$('#ttClose').addEventListener('click',()=>{$('#ttmd').hidden=true;setNav(curView);});
-$('#ttForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#ttInput').value.trim().toLowerCase();if(!v)return;
-  const map=[['prix','eqc'],['article','eqc'],['territ','dt'],['région','dt'],['churn','base'],['rétention','base'],['perte','base'],['tendance','poids'],['trajectoire','poids'],['format','mix'],['digital','rec'],['recrut','rec'],['magasin','rec'],['pass','val'],['app','val'],['activation','val'],['valeur','val'],['segment','seg'],['hebdo','seg'],['irrégul','seg'],['panier','eqc'],['fréquence','eqc'],['levier','eqc'],['mix','mix'],['dt','dt'],['objectif','dt'],['foyer','base'],['perdu','base'],['base','base'],['poids','poids']];
-  const hit=map.find(([w])=>v.includes(w));$('#ttInput').value='';
-  if(hit)openTT(hit[1],$('#ttCtx').textContent.replace('Contexte : ',''));else{const ws=v.split(/[^a-zàâçéèêëîïôûùüÿ]+/).filter(w=>w.length>3);const D=A&&A.D;const best=D?D.ins.map(x=>({x,s:ws.filter(w=>(x.title+' '+x.txt+' '+x.dom).toLowerCase().includes(w)).length})).filter(o=>o.s).sort((a,b)=>b.s-a.s||b.x.score-a.x.score)[0]:null;
-    $('#ttBody').insertAdjacentHTML('beforeend',`<div class="msg-u">${esc(v)}</div><div class="msg-a">${best?`<b>${best.x.title}</b><br>${best.x.txt}<br><br>${best.x.why}<div class="srcs">Source : diagnostic Pulse · ${best.x.proof}</div>`:'Je n’ai pas trouvé de constat lié à cette question dans le diagnostic. Essayez une des suggestions ci-dessous.'}</div>`+suggHtml());bindSugg();}});
 
 /* ===================== FILTRES GLOBAUX : tout le périmètre du dashboard Programme Club =====================
    En mode Tableau, chaque choix pilote les paramètres et filtres du dashboard, puis Pulse relit les feuilles. */
