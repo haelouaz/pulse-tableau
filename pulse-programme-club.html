@@ -1041,7 +1041,7 @@ function dgPath(){const {k}=M,out={};
   return out;}
 /* parc de magasins : somme des magasins par DT, tous formats (dernière période) */
 function dgParc(){if(typeof TB==='undefined'||!TB||!TB.territoire)return null;const enc=FILT.enc==='PASS'?'PASS':'Encarté';
-  const n=TB.territoire.filter(r=>tBase(r)&&r.type_encartage===enc&&r.axe==='DT'&&r.enseigne!=='Groupe').reduce((a,r)=>a+(r.nb_magasins||0),0);return n||null;}
+  const n=TB.territoire.filter(r=>tBase(r)&&r.type_encartage===enc&&r.axe==='DT'&&['Hyper','Market','Proxi'].includes(r.enseigne)).reduce((a,r)=>a+(r.nb_magasins||0),0);return n||null;}  // parc physique : l'E-commerce compte des magasins déjà présents dans les autres formats
 /* potentiel de rattrapage : DT sous la médiane de leur format ramenées à la médiane */
 function dgCatchup(){if(typeof TB==='undefined'||!TB||!TB.territoire)return null;const enc=FILT.enc==='PASS'?'PASS':'Encarté';const out={fmt:[],tot:0};
   ['Hyper','Market','Proxi','E-commerce'].forEach(f=>{const dt=TB.territoire.filter(r=>tBase(r)&&r.type_encartage===enc&&r.axe==='DT'&&r.enseigne===f&&r.poids_debit!=null&&r.debit_tot_n);if(dt.length<3)return;
@@ -1090,7 +1090,7 @@ function pathHtml(D){const p=D.path,{k}=M;if(!p||(p.dE==null&&p.dD==null))return
   if(p.freq)c.push(['…ou',`+${nf(p.freq,2)} visite par encarté`,`sur la période, à panier constant (${dec(k.freq_e)} aujourd’hui)`,'']);
   if(p.pan)c.push(['…ou',`+${eur(p.pan)} de panier`,`par visite encartée, à fréquence constante (${eur(k.panier_e)} aujourd’hui)`,'']);
   if(p.dD!=null)c.push(p.dD>0?['Passages à encarter pour l’objectif de poids Débit',cnt(p.dD),p.shareNE!=null?`${pct(p.shareNE,1)} des passages non encartés actuels`:'passages aujourd’hui non encartés','n']:['Avance sur l’objectif de poids Débit',cnt(-p.dD),'passages encartés au-dessus de l’objectif','p']);
-  if(p.perMagWeek)c.push(['Rythme en magasin',`${nf(p.perMagWeek,0)} passages`,`encartés en plus par magasin et par semaine (${nf(p.nMag,0)} magasins, ${nf(p.weeks,0)} semaine${p.weeks>1?'s':''})`,'']);
+  if(p.perMagWeek)c.push(['Rythme en magasin',`${nf(p.perMagWeek,0)} passages`,`encartés en plus par magasin et par semaine (${nf(p.nMag,0)} magasins Hyper, Market et Proxi, ${nf(p.weeks,0)} semaine${p.weeks>1?'s':''})`,'']);
   return `<div class="enj">${c.map(x=>`<div class="ej ${x[3]}"><span class="l">${x[0]}</span><span class="v">${x[1]}</span><span class="d">${x[2]}</span></div>`).join('')}</div>
   <p class="src">Chaque équivalent est calculé seul, les autres leviers restant constants ; en pratique, l’objectif se rattrape par une combinaison. Le rythme en magasin suppose une répartition égale entre magasins.</p>`;}
 function cuHtml(D){const cu=D.cu;if(!cu||!cu.fmt.length)return '';
