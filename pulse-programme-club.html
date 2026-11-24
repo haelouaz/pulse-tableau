@@ -1160,15 +1160,103 @@ function renderBrief(){const {k}=M,P=A.P,s0=A.signals[0],m=P.mom;
 }
 
 /* ===================== ANALYSE APPROFONDIE (niveau 2) ===================== */
-function hyps(){const {k}=M,H=[];
-  const recConf=k.ev_recrues<0||A.recWorstF.ev_rec<-0.02;
-  H.push([recConf?'c':'r',recConf?'Confirmée':'Rejetée','Le recrutement ne compense plus le renouvellement',`${evo(k.ev_recrues)} de recrues`,`Recrutement ${evo(k.ev_recrues)} (${M.fs.map(f=>`${f.name} ${evo(f.ev_rec)}`).join(', ')}). ${A.churn!=null?`${nf(A.churn*100,0)} % des foyers N-1 sont perdus sur la période ; `:''}solde de ${S(A.solde)}${cnt(Math.abs(A.solde))} foyers.`,'KPI Recrues · Solde d’actifs']);
-  if(A.carte&&A.app){const c=A.carte.dg<0&&A.app.dg>0;H.push([c?'c':'pa',c?'Confirmée':'Partielle','L’adhésion bascule de la carte physique vers le digital',`cartes ${pts(A.carte.dg)}`,`Cartes ${pct(A.carte.part_groupe,1)} (${pts(A.carte.dg)}), App ${pct(A.app.part_groupe,1)} (${pts(A.app.dg)}). En ${M.focus} : cartes ${pct(A.carte.part_focus,1)} (${pts(A.carte.df)}).`,'KPI Canal d’adhésion']);}
-  if(A.mixWorst){const c=A.mixD<0;H.push([c?'c':'r',c?'Confirmée':'Rejetée',`La structure du trafic joue contre le programme (${A.mixWorst.name})`,`${pts(A.mixD,2)} d’effet mix`,`Effet format ${pts(A.fmtD,2)}, effet mix ${pts(A.mixD,2)}. ${A.mixWorst.name} : Débit non encarté ${evo(A.mixWorst.ev_debit_ne)}, encarté ${evo(A.mixWorst.ev_debit_e)}, poids ${pct(A.mixWorst.poids_debit)}.`,'KPI Effet format · Effet mix']);}
-  {const w=A.segWorst,c=w.ev<-0.03;H.push([c?'pa':'r',c?'Partielle':'Rejetée',`Les ${w.name.toLowerCase()} se détournent`,`${evo(w.ev)}`,`Effet clients ${evo(w.effet_clients)}, effet fréquence ${evo(w.effet_freq)}. Lecture ${M.per}.`,'KPI CA par segment']);}
-  if(A.prixE&&A.artE){const c=Math.abs(A.prixE.v)>Math.abs(A.artE.v)*0.5;H.push([c?'c':'r',c?'Confirmée':'Rejetée','Un effet prix',dmeur(A.prixE.v),`Le prix moyen évolue de ${evo(k.ev_prix_e)} (${dmeur(A.prixE.v)}), contre ${dmeur(A.artE.v)} pour le nombre d’articles.`,'KPI Équation commerciale']);}
-  {const c=k.ev_ca_e<k.ev_ca_ne;H.push([c?'c':'r',c?'Confirmée':'Rejetée','Une désaffection pour le programme',`CA encartés ${evo(k.ev_ca_e)}`,`CA encartés ${evo(k.ev_ca_e)} contre ${evo(k.ev_ca_ne)} pour les non-encartés. ${A.actBest?`${A.actBest.name} : dépense ${evo(A.actBest.evd)}.`:''}`,'KPI Équation commerciale · Valeur client']);}
+/* ===================== CAUSES RACINES : hypothèses croisées sur la base clients (règles fixes) ===================== */
+const vOK=v=>v!=null&&isFinite(v);
+const totG=(a,b)=>vOK(a)&&vOK(b)?a+b:null;
+/* effet marché vs effet programme : encartés comparés aux non-encartés, levier par levier */
+function marketRows(){const {k}=M;return [
+  ['Trafic (débit)',k.ev_debit_e,k.ev_debit_ne],['CA',k.ev_ca_e,k.ev_ca_ne],['Panier moyen',k.ev_panier_e,k.ev_panier_ne],
+  ['Articles par panier',k.ev_articles_e,k.ev_articles_ne],['Prix moyen',k.ev_prix_e,k.ev_prix_ne]].filter(r=>vOK(r[1])&&vOK(r[2])).map(([n,e,ne])=>{
+  const d=e-ne;let l;if(Math.abs(d)<0.002)l=e<0?'Recul de marché, le programme suit':e>0?'Hausse de marché, le programme suit':'Stable';
+  else if(d>0)l=e<0?'Recul de marché, le programme amortit':'Le programme fait mieux que le marché';else l=e<0?'Recul plus marqué chez les encartés':'Le programme fait moins bien que le marché';
+  return {n,e,ne,d,l};});}
+function marketHtml(){const R=marketRows();if(!R.length)return '';
+  return `<div class="tbl"><table class="t">${thead(['Levier','Encartés vs N-1','Non-encartés vs N-1','Écart','Lecture'])}<tbody>${R.map(r=>`<tr><td><b>${r.n}</b></td><td class="r">${chg(r.e,evo)}</td><td class="r">${chg(r.ne,evo)}</td><td class="r"><b>${chg(r.d)}</b></td><td style="font-size:13px;color:var(--ink-2)">${r.l}</td></tr>`).join('')}</tbody></table></div>
+  <p class="src">Ce tableau sépare ce qui relève du marché (encartés et non-encartés bougent ensemble) de ce qui relève du programme (les encartés s’écartent des non-encartés). Équation commerciale de l’enseigne ${esc(FILT.eqc)}, ${esc(M.label)}.</p>`;}
+/* canal d'adhésion en volumes (évolutions vs N-1, Groupe) */
+function canalVol(){return M.canal.map(c=>({n:c.name,p:c.part_groupe,p1:c.part_groupe_n1,ev:vOK(c.vol_groupe)&&c.vol_groupe_n1?c.vol_groupe/c.vol_groupe_n1-1:null}));}
+function hyps(){const {k}=M,H=[],P=A.P||{};const push=(st,title,imp,txt,lect,src)=>H.push([st,{c:'Confirmée',pa:'Partielle',r:'Rejetée'}[st],title,imp,`${txt}${lect?`<br><b>Lecture.</b> ${lect}`:''}`,src]);
+  const F=n=>M.fs.find(f=>f.name===n);const hy=F('Hyper'),px=F('Proxi');
+  /* 1. Panier : effet marché ou effet programme ? */
+  if(vOK(k.ev_panier_e)&&vOK(k.ev_panier_ne)){const de=k.ev_panier_e,dn=k.ev_panier_ne;
+    if(de<0&&dn<0&&de>dn+0.002)push('c','La baisse du panier est un phénomène de marché, que le programme amortit',`panier ${evo(de)}`,
+      `Panier encartés ${evo(de)} contre ${evo(dn)} pour les non-encartés ; articles par panier ${evo(k.ev_articles_e)} contre ${evo(k.ev_articles_ne)} ; prix moyen ${evo(k.ev_prix_e)} contre ${evo(k.ev_prix_ne)}.`,
+      'Tous les clients remplissent moins leur panier, et les encartés un peu moins mal. Ce n’est pas un décrochage du programme : le levier est l’élargissement du panier (offres à seuil, ventes croisées), pas la réactivation.','KPI Équation commerciale · encartés et non-encartés');
+    else if(de<0&&de<dn-0.002)push('c','Le panier recule plus chez les encartés que sur le marché',`panier ${evo(de)}`,
+      `Panier encartés ${evo(de)} contre ${evo(dn)} pour les non-encartés ; articles par panier ${evo(k.ev_articles_e)} contre ${evo(k.ev_articles_ne)}.`,
+      'Le recul est propre au programme : les avantages fidélité ne soutiennent plus la taille des courses des porteurs.','KPI Équation commerciale · encartés et non-encartés');
+    else if(de<0)push('pa','Le panier recule au même rythme que le marché',`panier ${evo(de)}`,`Panier encartés ${evo(de)}, non-encartés ${evo(dn)}.`,'Tendance de marché que le programme ne compense pas.','KPI Équation commerciale');
+    else push('r','Une baisse du panier des encartés',`panier ${evo(de)}`,`Panier encartés ${evo(de)} (non-encartés ${evo(dn)}).`,'','KPI Équation commerciale');}
+  /* 2. Fractionnement des courses vers la proximité */
+  {const c=[];const mono=M.mix.find(m=>/mono/i.test(m.name));
+    if(vOK(k.ev_freq_e)&&k.ev_freq_e>0)c.push(`fréquence ${evo(k.ev_freq_e)}`);
+    if(vOK(k.ev_panier_e)&&k.ev_panier_e<0)c.push(`panier ${evo(k.ev_panier_e)}`);
+    if(hy&&px&&vOK(px.ev_ca_e)&&vOK(hy.ev_ca_e)&&px.ev_ca_e>hy.ev_ca_e)c.push(`CA encarté Proxi ${evo(px.ev_ca_e)} contre Hyper ${evo(hy.ev_ca_e)}`);
+    if(mono&&vOK(mono.d)&&mono.d<0)c.push(`foyers mono-format ${pts(mono.d)}`);
+    if(c.length>=2)push(c.length>=3?'c':'pa','Les porteurs fractionnent leurs courses : plus de visites, de plus petits paniers, plus de proximité',`${c.length}/4 signaux`,
+      `${c.join(' ; ')}.`,
+      'La croissance du CA encarté vient du nombre de visites, pas de la taille des courses, et se déplace vers les petits formats. Les leviers sont les paniers de courses complètes en Hyper et Market, et la valeur des visites en proximité.','KPI Équation commerciale · Encartage Format · Omnicanalité');
+    else push('r','Un fractionnement des courses vers la proximité',`${c.length}/4 signaux`,c.length?`${c.join(' ; ')}.`:'Aucun des signaux attendus.','','KPI Équation commerciale · Encartage Format');}
+  /* 3. Effet de structure : le format le moins encarté pèse plus lourd */
+  if(vOK(A.mixD)){const low=[...M.fs].filter(f=>vOK(f.poids_debit)&&f.name!=='E-commerce').sort((a,b)=>a.poids_debit-b.poids_debit)[0];const G=M.G;
+    const tg=f=>{const n=totG(f.debit_e,f.debit_ne),n1=totG(f.debit_e_n1,f.debit_ne_n1);return n&&n1?n/n1-1:null;};const tl=low?tg(low):null,tgG=tg(G);
+    if(A.mixD<0&&low&&vOK(tl)&&vOK(tgG)&&tl>tgG)push('c',`Effet de structure : ${low.name}, le format le moins encarté, gagne du poids dans le trafic`,`${pts(A.mixD,2)} d’effet mix`,
+      `En ${low.name}, ${pct(low.poids_debit,1)} des passages sont encartés ; son trafic total progresse de ${evo(tl)} contre ${evo(tgG)} pour le Groupe. L’effet mix retire ${pts(Math.abs(A.mixD),2).replace('+','')} au poids Débit du Groupe, alors que l’encartement progresse dans les formats (effet format ${pts(A.fmtD,2)}).`,
+      `Le poids Groupe recule par la structure du trafic, pas par une perte d’encartement en magasin. Le levier qui pèse le plus est l’encartement en ${low.name}.`,'KPI Effet format · Effet mix · Encartage Format');
+    else if(A.mixD<0)push('pa','La structure du trafic pèse sur le poids encarté',`${pts(A.mixD,2)} d’effet mix`,`Effet mix ${pts(A.mixD,2)}, effet format ${pts(A.fmtD,2)}.`,'','KPI Effet format · Effet mix');
+    else push('r','Un effet de structure défavorable',`${pts(A.mixD,2)} d’effet mix`,`Effet mix ${pts(A.mixD,2)}, effet format ${pts(A.fmtD,2)}.`,'','KPI Effet format · Effet mix');}
+  /* 4. Le programme capte-t-il la croissance du trafic ? */
+  if(vOK(k.ev_debit_e)&&vOK(k.ev_debit_ne)){const d=k.ev_debit_e-k.ev_debit_ne;const lag=M.fs.filter(f=>vOK(f.ev_debit_e)&&vOK(f.ev_debit_ne)&&f.ev_debit_e<f.ev_debit_ne).map(f=>`${f.name} (${evo(f.ev_debit_e)} contre ${evo(f.ev_debit_ne)})`);
+    if(d<=0.001&&!lag.length&&M.fs.some(f=>vOK(f.ev_debit_e)))push('pa','Le trafic encarté progresse plus vite dans chaque format, mais pas au niveau Groupe',`${pts(d)} d’écart Groupe`,
+      `Groupe : passages encartés ${evo(k.ev_debit_e)} contre ${evo(k.ev_debit_ne)} pour les non-encartés. Par format, les encartés font mieux partout : ${M.fs.filter(f=>vOK(f.ev_debit_e)&&vOK(f.ev_debit_ne)).map(f=>`${f.name} ${evo(f.ev_debit_e)} contre ${evo(f.ev_debit_ne)}`).join(', ')}.`,
+      'Ce paradoxe vient de l’effet de structure : le trafic croît surtout dans les formats peu encartés, ce qui annule au niveau Groupe le gain réalisé dans chaque format. Le programme ne perd pas de terrain en magasin ; c’est le mix des formats qui freine le poids Débit.','KPI Encartage Groupe · Encartage Format · Débit');
+    else if(d<=0.001)push('c','Le programme ne capte pas la croissance du trafic',`${pts(d)} d’écart`,
+      `Passages encartés ${evo(k.ev_debit_e)} contre ${evo(k.ev_debit_ne)} pour les non-encartés : le poids Débit reste à ${pct(k.poids_debit,1)} (${pts(k.poids_debit-k.poids_debit_n1)} vs N-1) pour un objectif de ${pct(k.poids_debit_obj,1)}.${lag.length?` Formats où le trafic non encarté progresse plus vite : ${lag.join(', ')}.`:''}`,
+      'Les nouveaux passages se font autant sans carte qu’avec : l’écart à l’objectif ne se résorbera pas sans un effort d’identification en caisse (scan carte ou App).','KPI Encartage Groupe · Débit');
+    else push('r','Le programme ne capte pas la croissance du trafic',`${pts(d)} d’écart`,`Passages encartés ${evo(k.ev_debit_e)} contre ${evo(k.ev_debit_ne)} pour les non-encartés.`,'','KPI Encartage Groupe · Débit');}
+  /* 5. Recrutement : quel canal décroche ? */
+  if(vOK(k.ev_recrues)){const cv=canalVol();const cart=cv.find(c=>/carte/i.test(c.n)),app=cv.find(c=>/app/i.test(c.n)),web=cv.find(c=>/\.fr|web|site/i.test(c.n));
+    const det=[cart,app,web].filter(c=>c&&vOK(c.ev)).map(c=>`${c.n} ${evo(c.ev)} (part ${pct(c.p,1)}, ${pts(c.p-c.p1)})`).join(' ; ');
+    const base=vOK(A.solde)?` Le solde de foyers reste ${A.solde>=0?'positif':'négatif'} (${S(A.solde)}${cnt(Math.abs(A.solde))}).`:'';
+    if(k.ev_recrues<0&&cart&&vOK(cart.ev)&&cart.ev<-0.05&&app&&vOK(app.ev)&&app.ev>0)push('c','Le recul du recrutement vient de l’adhésion par carte en magasin',`recrues ${evo(k.ev_recrues)}`,
+      `Recrues ${evo(k.ev_recrues)} : ${det}.${base}`,
+      `Le digital progresse mais ne compense pas la chute des adhésions carte en caisse. Le sujet est l’adhésion en magasin (hôtes et hôtesses de caisse, bascule vers l’App au comptoir).${A.solde>=0?' La base n’en souffre pas encore : les foyers gagnés dépassent les perdus.':''}`,'KPI Recrutement · Canal d’adhésion · Solde d’actifs');
+    else if(k.ev_recrues<0)push('pa','Le recrutement recule',`recrues ${evo(k.ev_recrues)}`,`Recrues ${evo(k.ev_recrues)}${det?` : ${det}`:''}.${base}`,'','KPI Recrutement · Canal d’adhésion');
+    else push('r','Un recul du recrutement',`recrues ${evo(k.ev_recrues)}`,`Recrues ${evo(k.ev_recrues)}${det?` : ${det}`:''}.`,'','KPI Recrutement');}
+  /* 6. Base : volume et valeur du renouvellement */
+  if(P.won&&P.lost){const vg=P.caGain&&P.won?P.caGain/P.won:null,vp=P.caLost&&P.lost?P.caLost/P.lost:null,r=vOK(vg)&&vOK(vp)&&vp?vg/vp:null;
+    const cst=vOK(k.cst_depense_n)&&k.cst_depense_n1?k.cst_depense_n/k.cst_depense_n1-1:null;const per=balLbl();
+    const txt=`${per.charAt(0).toUpperCase()+per.slice(1)} : ${cnt(P.won)} foyers gagnés, ${cnt(P.lost)} perdus (solde ${S(A.solde)}${cnt(Math.abs(A.solde))}, ${P.retention!=null?pct(P.retention,1)+' des foyers N-1 conservés':''}).${vOK(r)?` CA moyen d’un foyer gagné ${eur(vg,0)} contre ${eur(vp,0)} pour un foyer perdu.`:''}${vOK(cst)?` Les foyers constants dépensent ${evo(cst)} vs N-1.`:''}`;
+    if(A.solde>=0&&vOK(r)&&r<0.9)push('c','La base grossit mais se dévalorise',`solde ${S(A.solde)}${cnt(Math.abs(A.solde))}`,txt,
+      `Le programme gagne plus de foyers qu’il n’en perd, mais des foyers moins dépensiers que ceux qui partent${vOK(cst)&&cst<-0.01?', et ses clients fidèles dépensent moins':''}. Le volume de la base n’est pas le problème ; sa valeur l’est.`,'KPI Solde d’actifs');
+    else if(A.solde>=0&&vOK(cst)&&cst<-0.01)push('pa','La base se renouvelle bien, mais les clients fidèles dépensent moins',`constants ${evo(cst)}`,txt,
+      `Le renouvellement est sain : plus de foyers gagnés que perdus${vOK(r)?`, et des foyers gagnés qui valent ${r>=1?'plus':'autant'} que les perdus`:''}. Le point faible est le cœur de base : les foyers présents sur les deux périodes réduisent leur dépense, signe d’une part de portefeuille qui s’effrite.`,'KPI Solde d’actifs');
+    else if(A.solde<0)push('c','La base de porteurs se contracte',`solde ${S(A.solde)}${cnt(Math.abs(A.solde))}`,txt,'Les départs dépassent les arrivées : rétention et recrutement sont à traiter ensemble.','KPI Solde d’actifs');
+    else push('r','Une érosion de la base',`solde ${S(A.solde)}${cnt(Math.abs(A.solde))}`,txt,'','KPI Solde d’actifs');}
+  /* 7. Segments : sur qui repose la croissance ? */
+  {const sg=M.segs.filter(s=>vOK(s.ca)&&vOK(s.ca_n1)).map(s=>({...s,d:s.ca-s.ca_n1})).sort((a,b)=>b.d-a.d);
+    if(sg.length>=3){const up=sg.filter(s=>s.d>0),dn=sg.filter(s=>s.d<0);const tot=sg.reduce((a,s)=>a+s.d,0);
+      const det=sg.map(s=>`${s.name} ${dmeur(s.d)} (effet clients ${evo(s.effet_clients)}, fréquence ${evo(s.effet_freq)})`).join(' ; ');
+      if(up.length===1&&dn.length>=2)push('c',`La croissance repose sur les ${up[0].name.toLowerCase()} ; les clients moins fidèles décrochent`,`${dmeur(up[0].d)} vs ${dmeur(dn.reduce((a,s)=>a+s.d,0))}`,
+        `Écart de CA vs N-1 par segment (${esc(FILT.segm)}), total ${dmeur(tot)} : ${det}.`,
+        `Les ${up[0].name.toLowerCase()} compensent seuls le recul des autres segments. Ce qui fait reculer ${dn.map(s=>s.name.toLowerCase()).join(', ')} : ${dn.map(s=>{const fq=vOK(s.effet_freq)?s.effet_freq:0,cl=vOK(s.effet_clients)?s.effet_clients:0;return `${s.name.toLowerCase()}, ${fq<=cl?`la fréquence (${evo(fq)})`:`le nombre de clients (${evo(cl)})`}`;}).join(' ; ')}. Ces clients viennent de moins en moins : c’est le vivier des départs à venir, à réactiver avant qu’ils ne quittent la base.`,'KPI EQC Focus segment');
+      else if(dn.length)push('pa','Une partie des segments décroche',`${dn.length} segment${dn.length>1?'s':''} en recul`,`Écart de CA vs N-1 par segment : ${det}.`,'','KPI EQC Focus segment');
+      else push('r','Un décrochage de segment',`${dmeur(tot)}`,`Écart de CA vs N-1 par segment : ${det}.`,'','KPI EQC Focus segment');}}
+  /* 8. Activations : plus d'activés, mais moins dépensiers ? */
+  {const ac=M.acts.filter(a=>!a.isRef&&vOK(a.evc)&&vOK(a.evd));const dil=ac.filter(a=>a.evc>0.05&&a.evd<0);
+    const det=ac.map(a=>`${a.name} : clients ${evo(a.evc)}, dépense ${evo(a.evd)}, × ${nf(a.mult,2)}`).join(' ; ');
+    if(dil.length>=2)push('c','Les activations s’élargissent à des membres moins dépensiers',`${dil.length} activations`,
+      `${det} (référence ${esc(M.ref.name)} ${nf(M.ref.depense,0)} €).`,
+      `Le nombre d’activés progresse fortement mais leur dépense moyenne baisse : les nouvelles activations touchent des membres moins engagés. Elles restent plus rentables que la moyenne du Club${dil.every(a=>a.mult>1)?'':' pour la plupart'} ; l’enjeu est d’animer ces nouveaux activés pour qu’ils atteignent la valeur des anciens.`,'KPI Valeur clients');
+    else if(ac.length)push('r','Une dilution de la valeur des activations',`${dil.length} activation${dil.length>1?'s':''}`,`${det}.`,'','KPI Valeur clients');}
+  /* 9. Omnicanalité : progression et régressions */
+  {const mo=M.mix.find(m=>/multi online/i.test(m.name)),mn=M.mix.find(m=>/mono/i.test(m.name));const row=M.mat['Multi Online']||null;
+    const reg=row?['Mono format','Multi Offline'].reduce((a,x)=>a+(row[x]||0),0):null,stay=row?row['Multi Online']:null;
+    if(mo&&vOK(mo.d)&&mo.d>0&&vOK(reg))push(reg>0.25?'c':'pa',`La base devient plus omnicanale, mais ${pct(reg,0)} des multi-online N-1 ont régressé`,`multi online ${pts(mo.d)}`,
+      `Multi online ${pct(mo.part,1)} des foyers (${pts(mo.d)})${mn?`, mono-format ${pct(mn.part,1)} (${pts(mn.d)})`:''}. Parmi les foyers multi-online en N-1 : ${pct(stay,1)} le restent, ${pct(row['Multi Offline'],1)} repassent en multi offline et ${pct(row['Mono format'],1)} en mono-format.`,
+      'La conquête omnicanale avance, mais une part importante des foyers omnicanaux ne le reste pas. Fidéliser l’usage du digital compte autant que le faire découvrir.','KPI Omnicanalité · matrice de passage');}
   const order={c:0,pa:1,r:2};return H.sort((a,b)=>order[a[0]]-order[b[0]]);}
+
 function recos(){const {k}=M,R=[],P=A.P||{};
   if(k.ev_recrues<0||A.recWorstF.ev_rec<0)R.push([`Relancer l’enrôlement en ${A.recWorstF.name}`,`Diagnostic des magasins en plus forte baisse (${A.magRFlop.slice(0,3).map(m=>m.name).join(', ')}), puis renfort de l’adhésion App en caisse et challenge hôtes·ses de caisse.`,'Dir. Opérations · magasins','2 semaines','Recrutement au niveau N-1','Créer une alerte recrutement',P.recNeed>0?`${cnt(P.recNeed)} foyers à compenser`:`${evo(A.recWorstF.ev_rec)} en ${A.recWorstF.name}`]);
   const F=[...M.fs].filter(f=>f.poids_debit_obj!=null).sort((a,b)=>(a.poids_debit-a.poids_debit_obj)-(b.poids_debit-b.poids_debit_obj))[0];
@@ -1200,7 +1288,7 @@ function renderDeep(){const {k}=M,F=A.F;
      prose:[`Sur la période, le programme gagne <b>${cnt(k.foyers_gagnes)}</b> foyers et en perd <b>${cnt(k.foyers_perdus)}</b> : solde de <b>${S(A.solde)}${cnt(Math.abs(A.solde))}</b> (${cnt(k.foyers_n)} actifs).`,
        `Les foyers constants dépensent ${eur(k.cst_depense_n)} contre ${eur(k.cst_depense_n1)} en N-1 (${evo(ev(k.cst_depense_n,k.cst_depense_n1))}).`,
        `Le recrutement ${verb(k.ev_recrues)} de <b>${evo(k.ev_recrues)}</b> (${cnt(k.recrues)} recrues).${A.wFirst?` En ${M.focus}, l’écart cumulé passe de ${evo(A.wFirst.v)} en ${A.wFirst.name} à <b>${evo(A.wLast.v)}</b> en ${A.wLast.name}.`:''}`],figs:['rec','solde']},
-    {id:'causes',nav:'Pourquoi',eb:'6 · Causes racines',title:'Hypothèses testées sur les KPI du programme',q:'mix',prose:['Chaque hypothèse est confirmée, partielle ou rejetée selon des règles fixes appliquées aux KPI ; aucun chiffre n’est estimé.'],hyps:hyps(),figs:['mix']},
+    {id:'causes',nav:'Pourquoi',eb:'6 · Causes racines',title:'Pourquoi : neuf hypothèses croisées sur la base clients',q:'mix',prose:['D’abord, ce qui relève du marché et ce qui relève du programme. Ensuite, chaque hypothèse croise plusieurs KPI (équation commerciale, formats, segments, recrutement et canaux, solde d’actifs, activations, omnicanalité) et reçoit un verdict par des règles fixes : confirmée, partielle ou rejetée. Aucun chiffre n’est estimé.'],html:marketHtml(),hyps:hyps(),figs:['mix']},
     {id:'ou',nav:'Où',eb:'7 · Où agir',title:`${A.dtUnder.length} ${M.ax} ${M.focus} sur ${M.dts.length} sous l’objectif`,q:'dt',
      prose:[`En ${M.focus}, le poids Débit encarté atteint <b>${pct(F.poids_debit)}</b> (${pts(F.poids_debit-F.poids_debit_n1)} vs N-1${F.poids_debit_obj!=null?`, ${pts(F.poids_debit-F.poids_debit_obj)} vs objectif`:''}). Les ${M.ax} les plus éloignées de l’objectif : ${A.dtWorst.slice(0,3).map(d=>`<b>${d.name}</b> (${pts(d.dobj)})`).join(', ')}.`,
        `Recrutement : ${A.dtRecWorst.name} est la maille ${M.ax} la plus en recul (${evo(A.dtRecWorst.ev)}), ${A.dtRecBest.name} la plus dynamique (${evo(A.dtRecBest.ev)}). Magasins en plus forte baisse : ${A.magRFlop.slice(0,3).map(m=>`${m.name} (${evo(m.ev)})`).join(', ')}.`],html:prioFmt()+(prioDT()?'<h3 style="font-size:15px;margin:18px 0 6px">'+M.ax+' '+M.focus+' les plus éloignées de l’objectif</h3>'+prioDT():''),figs:['dt','regions']},
@@ -1698,7 +1786,7 @@ function rowsFromTables(){
     a('activation',n,'clients',r.clients_n,vo);a('activation',n,'clients_n1',r.clients_n1,vo);a('activation',n,'depense',r.depense_n,vo);a('activation',n,'depense_n1',r.depense_n1,vo);a('activation',n,'reference',/club/i.test(n)&&/membre/i.test(n)?1:0,vo);});
   let can=C.filter(r=>r.bloc==='CANAL');can=pick(can,r=>r.flag_cora===T_CORA[FILT.nc]);can=pick(can,r=>r.statut_desc===FILT.stat);{const tt=can.some(r=>r.temporalite===T_TEMPO[FILT.tempo])?T_TEMPO[FILT.tempo]:(can.find(r=>r.temporalite==='CAD S')||can[0]||{}).temporalite;can=can.filter(r=>r.temporalite===tt);}const corder={Application:1,'Carrefour.fr':2,Cartes:3};
   [['Groupe','groupe'],[focus,'focus']].forEach(([e,sfx])=>{const rows=can.filter(r=>r.enseigne===e);const tn=rows.reduce((x,r)=>x+(r.clients_n||0),0),t1=rows.reduce((x,r)=>x+(r.clients_n1||0),0);
-    rows.forEach(r=>{a('canal',r.dimension,'part_'+sfx,tn?r.clients_n/tn:null,corder[r.dimension]);a('canal',r.dimension,'part_'+sfx+'_n1',t1?r.clients_n1/t1:null,corder[r.dimension]);});});
+    rows.forEach(r=>{a('canal',r.dimension,'vol_'+sfx,r.clients_n,corder[r.dimension]);a('canal',r.dimension,'vol_'+sfx+'_n1',r.clients_n1,corder[r.dimension]);a('canal',r.dimension,'part_'+sfx,tn?r.clients_n/tn:null,corder[r.dimension]);a('canal',r.dimension,'part_'+sfx+'_n1',t1?r.clients_n1/t1:null,corder[r.dimension]);});});
   const mixAll=C.filter(r=>r.bloc==='MIXITE'),mixId=mixAll.map(r=>r.identifiant).sort().pop();const mord={'Mono format':1,'Multi Offline':2,'Multi Online':3,'Exclusif Online':4};
   mixAll.filter(r=>r.identifiant===mixId).forEach(r=>{const n=r.dimension,y=String(r.dimension_2||'');if(y==='N'){a('mixite',n,'part',r.part,mord[n]);a('mixite',n,'foyers',r.foyers,mord[n]);}if(/^N-?1$/.test(y))a('mixite',n,'part_n1',r.part,mord[n]);});
   const matAll=C.filter(r=>r.bloc==='MATRICE'),matId=matAll.map(r=>r.identifiant).sort().pop();matAll.filter(r=>r.identifiant===matId).forEach(r=>a('matrice',r.dimension+'>'+r.dimension_2,'part',r.part));
