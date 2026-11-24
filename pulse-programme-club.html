@@ -353,6 +353,7 @@ table.t tr.grp td{background:var(--surface-2)}
 .ctb .l{font-weight:600} .ctb .v{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
 .ctb .bar{position:relative;height:18px;background:linear-gradient(var(--line),var(--line)) center/1px 100% no-repeat}
 .ctb .bar i{position:absolute;top:2px;bottom:2px;border-radius:4px}
+.note-per{display:block;font-size:12px;color:var(--brief-muted);margin-bottom:2px}
 </style>
 </head>
 <body>
@@ -686,11 +687,13 @@ function pilot(){const {k,fs,dts,ref}=M,P={};
   const st=(c,v)=>c?'alert':v?'vig':'ok';
   P.pil=[
     ['Acquisition',st(k.ev_recrues<-0.05,k.ev_recrues<0),`${cnt(k.recrues)} recrues`,`${evo(k.ev_recrues)} vs N-1`,'base','rec'],
-    ['Rétention',st(A.solde<0&&P.retention!=null&&P.retention<0.8,A.solde<0),P.retention!=null?`${nf(P.retention*100,1)} % des foyers conservés`:`${cnt(k.foyers_n)} foyers actifs`,`solde ${S(A.solde)}${cnt(Math.abs(A.solde))} foyers`,'base','base'],
+    ['Rétention',st(A.solde<0&&P.retention!=null&&P.retention<0.8,A.solde<0),P.retention!=null?`${nf(P.retention*100,1)} % des foyers conservés`:`${cnt(k.foyers_n)} foyers actifs`,`solde ${S(A.solde)}${cnt(Math.abs(A.solde))} foyers${balSynced()?'':' · '+FILT.bal}`,'base','base'],
     ['Engagement',st(k.ev_freq_e<-0.02,k.ev_freq_e<0),`${dec(k.freq_e)} visites par encarté`,`${evo(k.ev_freq_e)} vs N-1`,'moteurs','eqc'],
     ['Valeur',st(k.ev_panier_e<-0.02&&k.ev_ca_e<0,k.ev_panier_e<0||k.ev_ca_e<k.ev_ca_ne),`panier ${eur(k.panier_e)}`,`${evo(k.ev_panier_e)} vs N-1`,'moteurs','eqc'],
     ['Contribution',st(A.gapDebit!=null&&A.gapDebit<-0.01,A.gapDebit!=null?A.gapDebit<0:k.poids_debit<k.poids_debit_n1),`${pct(k.poids_debit,1)} du trafic`,A.gapDebit!=null?`${pts(A.gapDebit)} vs objectif`:`${pts(k.poids_debit-k.poids_debit_n1)} vs N-1`,'performance','poids']];
   return P;}
+let SOLK=null;const balSynced=()=>FILT.tempo==='CAD'||FILT.tempo==='CAM';
+const balLbl=()=>balSynced()?`en ${M.label}`:({'3 derniers mois':'sur les 3 derniers mois','6 derniers mois':'sur les 6 derniers mois',CAM:'en CAM (12 mois glissants)',CAD:'en cumul annuel (CAD)'})[FILT.bal]||('sur '+FILT.bal);
 const chg=(v,f=pts)=>v==null?'—':`<span class="${v>0?'c-up':v<0?'c-down':''}">${f(v)}</span>`;
 function momCard(){const m=A.P.mom;if(!m)return '';
   const L=[['Poids CA encartés',m.dCA],['Poids Débit encartés',m.dDb],['Évol. CA encartés',m.dEv]].filter(x=>x[1]!=null);
@@ -890,7 +893,7 @@ function diagnose(){const {k}=M,D={ins:[],tests:0},S=dgSeries(),G=(S.Groupe||[])
     const dt=TB.territoire.filter(r=>tBase(r)&&r.type_encartage===enc&&r.axe==='DT'&&r.enseigne!=='Groupe'&&r.poids_debit_obj!=null&&r.poids_debit!=null).map(r=>({n:nice(r.valeur_axe),f:r.enseigne,gap:r.poids_debit-r.poids_debit_obj,w:r.nb_magasins||1,rec:evv(r.recrues_n,r.recrues_n1)}));
     if(dt.length<4)return null;const neg=dt.filter(x=>x.gap<0).map(x=>({...x,c:-x.gap*x.w})).sort((a,b)=>b.c-a.c);const tot=neg.reduce((a,x)=>a+x.c,0);if(!tot)return null;
     const top=Math.max(1,Math.ceil(dt.length*0.2)),share=neg.slice(0,top).reduce((a,x)=>a+x.c,0)/tot;const pr=pearson(dt.map(x=>x.gap),dt.map(x=>x.rec));D.terr={dt,neg,share,top,pr};
-    return {t:'neg',w:share*3+1,dom:'Territoires',q:'dt',sec:'ou',title:`${top} DT concentrent ${pct(share,0)} de l’écart à l’objectif`,txt:`${neg.length} DT sur ${dt.length} (tous formats) sont sous l’objectif de poids Débit. Les plus contributrices, pondérées par le nombre de magasins : ${neg.slice(0,3).map(x=>`<b>${x.n} ${x.f}</b> (${pts(x.gap)})`).join(', ')}.${pr&&Math.abs(pr.r)>=0.35?` <b>Lien avec le recrutement : r = ${nf(pr.r,2)}</b> — ${pr.r>0?'les DT qui recrutent moins sont aussi celles qui perdent du poids encarté.':'le retard ne s’explique pas par le recrutement.'}`:''}`,
+    return {t:'neg',w:share*3+1,dom:'Territoires',q:'dt',sec:'ou',title:`${top} DT concentrent ${pct(share,0)} de l’écart à l’objectif`,txt:`Par format : ${['Hyper','Market','Proxi','E-commerce'].map(f=>{const a=dt.filter(x=>x.f===f);return a.length?`${f} ${a.filter(x=>x.gap<0).length}/${a.length}`:null;}).filter(Boolean).join(', ')} DT sous l’objectif de poids Débit. Les plus contributrices, pondérées par le nombre de magasins : ${neg.slice(0,3).map(x=>`<b>${x.n} ${x.f}</b> (${pts(x.gap)})`).join(', ')}.${pr&&Math.abs(pr.r)>=0.35?` <b>Lien avec le recrutement : r = ${nf(pr.r,2)}</b> — ${pr.r>0?'les DT qui recrutent moins sont aussi celles qui perdent du poids encarté.':'le retard ne s’explique pas par le recrutement.'}`:''}`,
       why:share>0.5?'L’écart est concentré : un plan ciblé sur quelques DT suffit à rattraper l’essentiel.':'L’écart est diffus : il faut un levier national (offre, communication), pas un plan local.',imp:'',conf:dt.length>=10?'Élevée':'Moyenne',proof:`Contribution = écart de poids × nombre de magasins. Corrélation calculée sur ${pr?pr.n:0} DT.`};});
   // T11 segment le plus exposé
   T(()=>{const s=[...M.segs].filter(x=>x.ev!=null).sort((a,b)=>(a.ev*a.poids)-(b.ev*b.poids))[0];if(!s||s.ev>=0)return null;
@@ -1111,9 +1114,10 @@ function renderBrief(){const {k}=M,P=A.P,s0=A.signals[0],m=P.mom;
     const same=vb===verb(k.ev_ca_e);return `${head} et ${sj} ${same?vb+' aussi':vb} (${val})`;})();
   const pF=P.fmt[0];
   const O=A.O,wt=O.worstFmtTerr;
-  const p4=O.nDt?`<b>${O.dtUnder} DT sur ${O.nDt}</b> sont sous l’objectif de poids Débit, tous formats confondus.${wt&&wt.dtUnder?` Le plus exposé : <b>${wt.f}</b> (${wt.dtUnder}/${wt.nDt} DT, ${wt.worst.n} à ${pts(wt.worst.gap)}).`:''}`:`Par format, le poids Débit est ${P.fmt.map(f=>`${f.name} ${f.gap!=null?pts(f.gap)+' vs obj.':pct(f.poids,1)}`).join(', ')}.`;
+  const tw=O.terr.filter(t=>t.nDt).map(t=>t.worst&&t.worst.gap!=null?{f:t.f,...t.worst}:null).filter(Boolean).sort((a,b)=>a.gap-b.gap)[0];
+  const p4=O.nDt?`DT sous l’objectif de poids Débit, par format : ${O.terr.filter(t=>t.nDt).map(t=>`<b>${t.f} ${t.dtUnder}/${t.nDt}</b>`).join(', ')}.${tw&&tw.gap<0?` La plus éloignée : <b>${tw.n}</b> (${tw.f}, ${pts(tw.gap)}).`:''}`:`Par format, le poids Débit est ${P.fmt.map(f=>`${f.name} ${f.gap!=null?pts(f.gap)+' vs obj.':pct(f.poids,1)}`).join(', ')}.`;
   const p1=`Les encartés font <b>${pct(k.poids_ca,1)} du CA</b> (${pts(k.poids_ca-k.poids_ca_n1)} vs N-1${m&&m.dCA!=null?`, ${pts(m.dCA)} vs ${esc(m.prev)}`:''}). Leur CA ${verb(k.ev_ca_e)} de <b>${evo(k.ev_ca_e)}</b> contre ${evo(k.ev_ca_ne)} pour les non-encartés : ${k.ev_ca_e>=k.ev_ca_ne?'<b>le programme surperforme</b>':'<b>le programme sous-performe</b>'}. Premier moteur : ${A.pos.name.toLowerCase()} (${dmeur(A.pos.v)}).`;
-  const p2=`La base compte <b>${cnt(k.foyers_n)} foyers actifs</b>${P.retention!=null?`, ${nf(P.retention*100,1)} % des foyers N-1 conservés`:''} : ${cnt(P.won)} gagnés, ${cnt(P.lost)} perdus (<b>solde ${S(A.solde)}${cnt(Math.abs(A.solde))}</b>). Le recrutement ${verb(k.ev_recrues)} de <b>${evo(k.ev_recrues)}</b>${A.recWorstF.ev_rec<0?`, plus fort recul en ${A.recWorstF.name} (${evo(A.recWorstF.ev_rec)})`:''}.`;
+  const p2=`La base compte <b>${cnt(k.foyers_n)} foyers actifs</b> ${balLbl()}${P.retention!=null?`, ${nf(P.retention*100,1)} % des foyers N-1 conservés`:''} : ${cnt(P.won)} gagnés, ${cnt(P.lost)} perdus (<b>solde ${S(A.solde)}${cnt(Math.abs(A.solde))}</b>). Le recrutement${balSynced()?'':` (${M.label})`} ${verb(k.ev_recrues)} de <b>${evo(k.ev_recrues)}</b>${A.recWorstF.ev_rec<0?`, plus fort recul en ${A.recWorstF.name} (${evo(A.recWorstF.ev_rec)})`:''}.`;
   const p3=P.gapCAeur!=null?(P.gapCAeur>0?`Atteindre l’objectif de poids CA représente <b>${meur(P.gapCAeur)} de CA encarté</b> à aller chercher (1 pt = ${meur(P.pt)}).`:`Le poids CA dépasse l’objectif de ${pts(A.gapCA)}, soit <b>${meur(-P.gapCAeur)} d’avance</b>.`):`Le levier le plus pénalisant est <b>${A.neg.name.toLowerCase()}</b> (${dmeur(A.neg.v)}).`;
   const p3b=pF&&pF.sc?` Priorité : <b>${pF.name}</b> (${pF.why.join(', ')}).`:'';
   const pth=A.D&&A.D.path||{};const p3c=pth.perMagWeek?` Concrètement : <b>${nf(pth.perMagWeek,0)} passages encartés de plus par magasin et par semaine</b>.`:'';
@@ -1131,7 +1135,7 @@ function renderBrief(){const {k}=M,P=A.P,s0=A.signals[0],m=P.mom;
         <button type="button" class="mini" data-q="poids"><div class="l">Poids CA encartés</div><div class="v">${pct(k.poids_ca,1)}<small class="${k.poids_ca>=k.poids_ca_n1?'p':'n'}">${pts(k.poids_ca-k.poids_ca_n1)}</small></div></button>
         <button type="button" class="mini" data-q="poids"><div class="l">Poids Débit</div><div class="v">${pct(k.poids_debit,1)}${A.gapDebit!=null?`<small class="${A.gapDebit>=0?'p':'n'}">${pts(A.gapDebit)} obj</small>`:''}</div></button>
         <button type="button" class="mini" data-q="eqc"><div class="l">CA encartés</div><div class="v">${meur(k.ca_e)}<small class="${k.ev_ca_e>=0?'p':'n'}">${evo(k.ev_ca_e)}</small></div></button>
-        <button type="button" class="mini" data-q="base"><div class="l">Foyers actifs</div><div class="v">${cnt(k.foyers_n)}<small class="${A.solde>=0?'p':'n'}">${S(A.solde)}${cnt(Math.abs(A.solde))}</small></div></button>
+        <button type="button" class="mini" data-q="base"><div class="l">Foyers actifs${balSynced()?'':' · '+esc(FILT.bal)}</div><div class="v">${cnt(k.foyers_n)}<small class="${A.solde>=0?'p':'n'}">${S(A.solde)}${cnt(Math.abs(A.solde))}</small></div></button>
         <button type="button" class="mini" data-q="rec"><div class="l">Recrues</div><div class="v">${cnt(k.recrues)}<small class="${k.ev_recrues>=0?'p':'n'}">${evo(k.ev_recrues)}</small></div></button>
         ${P.gapCAeur!=null?`<button type="button" class="mini" data-q="poids"><div class="l">${P.gapCAeur>0?'À aller chercher':'Avance objectif'}</div><div class="v">${meur(Math.abs(P.gapCAeur))}</div></button>`:''}</div></div>
     <div class="axes pil">${P.pil.map(d=>`<button type="button" class="dom" data-sec="${d[4]}"><b><span class="dot ${d[1]}"></span>${d[0]}</b><span class="pv">${d[2]}</span><span>${d[3]}</span></button>`).join('')}</div>
@@ -1339,7 +1343,7 @@ function renderGbar(){const el=$('#gbar');if(!el)return;if(!M){el.innerHTML='';r
   const sel=c=>{const opts=c.k==='per'?(PERIODS.length?PERIODS:[{v:'',l:M.perS||'Dernière'}]):c.o.map(x=>({v:x,l:x}));
     return `<div class="filt"><label for="g_${c.k}">${c.l}</label><select id="g_${c.k}" data-k="${c.k}" ${live&&!BUSY?'':'disabled'}>${opts.map(o=>`<option value="${esc(o.v)}"${o.v===FILT[c.k]?' selected':''}>${esc(o.l)}</option>`).join('')}</select></div>`;};
   el.innerHTML=`<div class="filters gbar${BUSY?' busy':''}">${CTRL.filter(c=>c.main).map(sel).join('')}<button type="button" class="gmore-btn" id="gMore" aria-expanded="${gbarOpen}">${gbarOpen?'− Moins de filtres':'+ Plus de filtres'}</button>
-    ${gbarOpen?`<div class="gmore">${CTRL.filter(c=>!c.main).map(sel).join('')}</div>`:''}
+    ${gbarOpen?`<div class="gmore">${CTRL.filter(c=>!c.main&&!(c.k==='bal'&&balSynced())).map(sel).join('')}</div>`:''}
     <p class="note">${BUSY?'<b>Mise à jour…</b> Tableau recalcule le dashboard, puis Pulse relit les chiffres.':live?`Par défaut : dernière période CAD, tout le programme${PERIODS[0]&&FILT.per!==PERIODS[0].v?' · <a href="#" data-latest="1">revenir à la dernière période</a>':''}. Le format focus ne change que le détail territorial et le dashboard.`:'Connexion à Tableau Cloud en cours…'}</p></div>`;
   el.querySelectorAll('select[data-k]').forEach(s=>s.addEventListener('change',e=>{const k=e.target.dataset.k;FILT[k]=e.target.value;if(k==='tempo')FILT.per='';refreshTableau();}));
   $('#gMore').addEventListener('click',()=>{gbarOpen=!gbarOpen;renderGbar();});
@@ -1679,7 +1683,9 @@ function rowsFromTables(){
     const rank={hebdomadaires:1,'bi-mensuels':2,mensuels:3,'irréguliers':4}[s.toLowerCase()]||++so+4,nm=nice(s);
     a('segment',nm,'ca',r.ca_n,rank);a('segment',nm,'ca_n1',r.ca_n1,rank);a('segment',nm,'clients',r.clients_n,rank);a('segment',nm,'effet_clients',r.effet_clients,rank);a('segment',nm,'effet_freq',r.effet_freq,rank);a('segment',nm,'effet_panier',r.effet_panier,rank);});
   if(!seg.some(r=>/^total/i.test(String(r.dimension||'')))&&seg.length){const s=k=>seg.reduce((x,r)=>x+(r[k]||0),0);a('kpi','','seg_ca',s('ca_n'));a('kpi','','seg_ca_n1',s('ca_n1'));a('kpi','','seg_clients',s('clients_n'));}
-  const bt=T_BAL[FILT.bal]||'3 derniers mois',sol=C.filter(r=>r.bloc==='SOLDE'&&r.temporalite===bt&&r.flag_cora===T_CORA[FILT.nc]&&r.statut_desc===FILT.stat&&r.type_encartage===enc);
+  if(balSynced())FILT.bal=FILT.tempo;  // même période que le reste du brief en CAD et en CAM
+  const bt=T_BAL[FILT.bal]||'3 derniers mois';let sol=C.filter(r=>r.bloc==='SOLDE'&&r.temporalite===bt&&r.flag_cora===T_CORA[FILT.nc]&&r.statut_desc===FILT.stat&&r.type_encartage===enc);
+  {const ks=[...new Set(sol.map(r=>r._key).filter(Boolean))].sort();const kk=balSynced()&&ks.includes(key)?key:ks.at(-1);if(kk)sol=sol.filter(r=>!r._key||r._key===kk);SOLK=kk||null;}
   sol.forEach(r=>{const f=r.enseigne,t=String(r.dimension||'');if(t==='N')a('format',f,'foyers',r.foyers,ord[f]);if(t==='N-1')a('format',f,'foyers_n1',r.foyers,ord[f]);});
   const sg=t=>sol.find(r=>r.enseigne==='Groupe'&&String(r.dimension)===t)||{};
   a('kpi','','foyers_n',sg('N').foyers);a('kpi','','foyers_n1',sg('N-1').foyers);a('kpi','','foyers_gagnes',Math.abs(sg('Gagnés').foyers||0)||null);a('kpi','','foyers_perdus',Math.abs(sg('Perdus').foyers||0)||null);
