@@ -1721,13 +1721,17 @@ async function drain(r){const out=[];let names=null;
   finally{try{await r.releaseAsync();}catch(e){}}return out;}
 async function readFullTable(ws){
   // 1) Données complètes (Explorer / Creator). 2) Repli données résumées : autorisé pour toutes les licences, Viewer compris.
+  let e1=null;
   try{const ds=(await ws.getDataSourcesAsync())[0];if(ds){const lt=(await ds.getLogicalTablesAsync())[0];
-    return await drain(await ds.getLogicalTableDataReaderAsync(lt.id,10000));}}catch(e){}
-  return await drain(await ws.getSummaryDataReaderAsync(10000,{ignoreSelection:true,ignoreAliases:true}));}
+    return await drain(await ds.getLogicalTableDataReaderAsync(lt.id,10000));}}catch(e){e1=e;}
+  try{return await drain(await ws.getSummaryDataReaderAsync(10000,{ignoreSelection:true,ignoreAliases:true}));}
+  catch(e2){const m=e=>e?String(e.errorCode||e.name||'')+' '+String(e.message||e).slice(0,160):'—';
+    console.warn('[Pulse] lecture',ws.name,e1,e2);
+    throw {user:'Lecture Tableau impossible · feuille '+ws.name+' · complète : '+m(e1)+' · résumée : '+m(e2)};}}
 async function loadTables(dash){
   const by={};dash.worksheets.forEach(w=>{by[w.name.trim()]=w;});
   const keys=Object.keys(TB_SHEETS),miss=keys.filter(k=>!by[TB_SHEETS[k]]);if(miss.length)throw {user:'Feuilles Pulse manquantes : '+miss.map(k=>TB_SHEETS[k]).join(', ')};
-  const res=await Promise.all(keys.map(k=>readFullTable(by[TB_SHEETS[k]])));const T={};keys.forEach((k,i)=>T[k]=res[i]);
+  const res=[];for(const k of keys)res.push(await readFullTable(by[TB_SHEETS[k]]));const T={};keys.forEach((k,i)=>T[k]=res[i]);
   T.periode.forEach(r=>{r._key=perKey(r.identifiant);r.flag_cora=r.flag_cora==null?null:Number(r.flag_cora);});
   T.territoire=T.territoire.filter(r=>!/^format$/i.test(String(r.valeur_axe||'').trim()));  // ligne de total format présente dans la source : ce n'est pas une maille
   T.territoire.forEach(r=>{r.flag_cora=r.flag_cora==null?null:Number(r.flag_cora);});
@@ -1819,7 +1823,7 @@ async function connectTableau(){
     await loadParams();initFiltFromTableau();
     await refreshTableau();
     loadHistory(SRC.worksheets);
-  }catch(e){setMode('err',(e&&e.user)||'Lecture Tableau impossible');console.warn('[Pulse]',e);if(!M)splash(e&&e.cookie);}
+  }catch(e){setMode('err',(e&&e.user)||('Lecture Tableau impossible · '+String(e&&(e.errorCode||''))+' '+String(e&&(e.message||e)).slice(0,200)));console.warn('[Pulse]',e);if(!M)splash(e&&e.cookie);}
 }
 connectTableau();
 
