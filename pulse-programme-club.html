@@ -1714,13 +1714,16 @@ async function embedSource(){
    sans aucun recalcul Tableau. */
 const TB_SHEETS={periode:'pulse_periode',territoire:'pulse_territoire',clients:'pulse_clients'};
 let TB=null;
+const NM=f=>String(f).replace(/^(?:SUM|AGG|ATTR|AVG|MIN|MAX|COUNTD?)\((.*)\)$/i,'$1').replace(/\s+/g,'_').toLowerCase();
+async function drain(r){const out=[];let names=null;
+  try{for(let i=0;i<r.pageCount;i++){const p=await r.getPageAsync(i);names=names||p.columns.map(c=>NM(c.fieldName));
+    p.data.forEach(row=>{const o={};names.forEach((n,j)=>{const c=row[j];let v=c==null?null:(c.nativeValue!==undefined?c.nativeValue:c.value);if(v==='%null%'||v==='')v=null;o[n]=v;});out.push(o);});}}
+  finally{try{await r.releaseAsync();}catch(e){}}return out;}
 async function readFullTable(ws){
-  const ds=(await ws.getDataSourcesAsync())[0];if(!ds)throw {user:'Source introuvable pour la feuille '+ws.name};
-  const lt=(await ds.getLogicalTablesAsync())[0];
-  const r=await ds.getLogicalTableDataReaderAsync(lt.id,10000);const out=[];let names=null;
-  for(let i=0;i<r.pageCount;i++){const p=await r.getPageAsync(i);names=names||p.columns.map(c=>String(c.fieldName).replace(/\s+/g,'_').toLowerCase());
-    p.data.forEach(row=>{const o={};names.forEach((n,j)=>{const c=row[j];let v=c==null?null:(c.nativeValue!==undefined?c.nativeValue:c.value);if(v==='%null%'||v==='')v=null;o[n]=v;});out.push(o);});}
-  await r.releaseAsync();return out;}
+  // 1) Données complètes (Explorer / Creator). 2) Repli données résumées : autorisé pour toutes les licences, Viewer compris.
+  try{const ds=(await ws.getDataSourcesAsync())[0];if(ds){const lt=(await ds.getLogicalTablesAsync())[0];
+    return await drain(await ds.getLogicalTableDataReaderAsync(lt.id,10000));}}catch(e){}
+  return await drain(await ws.getSummaryDataReaderAsync(10000,{ignoreSelection:true,ignoreAliases:true}));}
 async function loadTables(dash){
   const by={};dash.worksheets.forEach(w=>{by[w.name.trim()]=w;});
   const keys=Object.keys(TB_SHEETS),miss=keys.filter(k=>!by[TB_SHEETS[k]]);if(miss.length)throw {user:'Feuilles Pulse manquantes : '+miss.map(k=>TB_SHEETS[k]).join(', ')};
